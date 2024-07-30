@@ -112,7 +112,91 @@ export type Employee = {
 
 export const navItems: NavItem[] = [
   {
-    title: 'Dashboard',
+    title: 'School',
+    href: '/admin/school',
+    icon: 'school',
+    label: 'School'
+  },
+  {
+    title: 'Groups',
+    href: '/admin/school/group',
+    icon: 'groups',
+    label: 'Groups'
+  },
+  {
+    title: 'Students',
+    href: '/admin/school/student',
+    icon: 'students',
+    label: 'Students'
+  },
+  {
+    title: 'Teachers',
+    href: '/admin/school/teacher',
+    icon: 'teachers',
+    label: 'Teachers'
+  },
+  {
+    title: 'Attendance',
+    href: '/admin/school/attendance',
+    icon: 'attendance',
+    label: 'Attendance'
+  },
+  {
+    title: 'Posts',
+    href: '/admin/school/post',
+    icon: 'post',
+    label: 'Posts'
+  },
+  {
+    title: 'Assignments',
+    href: '/admin/school/assignment',
+    icon: 'assignments',
+    label: 'Assignments'
+  },
+  {
+    title: 'Forms',
+    href: '/admin/school/form',
+    icon: 'forms',
+    label: 'Forms'
+  },
+  {
+    title: 'Calendar',
+    href: '/admin/school/calendar',
+    icon: 'calendar',
+    label: 'Calendar'
+  },
+  {
+    title: 'Message',
+    href: '/admin/school/message',
+    icon: 'message',
+    label: 'Message'
+  },
+  {
+    title: 'Leaves',
+    href: '/admin/school/leave',
+    icon: 'leaves',
+    label: 'Leaves'
+  },
+  {
+    title: 'Timetable',
+    href: '/admin/school/timetable',
+    icon: 'timetable',
+    label: 'Timetable'
+  },
+  {
+    title: 'Payments',
+    href: '/admin/school/payment',
+    icon: 'payments',
+    label: 'Payments'
+  },
+  {
+    title: 'User Management',
+    href: '/admin/school/user-management',
+    icon: 'userManagement',
+    label: 'User Management'
+  },
+  {
+    title: 'Dashboard Old',
     href: '/dashboard',
     icon: 'dashboard',
     label: 'Dashboard'

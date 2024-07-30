@@ -1,9 +1,11 @@
+'use client';
 import { AreaGraph } from '@/components/charts/area-graph';
 import { BarGraph } from '@/components/charts/bar-graph';
 import { PieGraph } from '@/components/charts/pie-graph';
 import { CalendarDateRangePicker } from '@/components/date-range-picker';
 import { Overview } from '@/components/overview';
 import { RecentSales } from '@/components/recent-sales';
+import { TodayAbsentees } from '@/components/school/dashboard/TodayAbsentees';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -15,6 +17,8 @@ import {
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
+import { ApolloProvider } from '@apollo/client';
+import client from '@/lib/apollo-client';
 export default function page() {
   return (
     <ScrollArea className="h-full">
@@ -36,7 +40,7 @@ export default function page() {
             </TabsTrigger>
           </TabsList>
           <TabsContent value="overview" className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">
@@ -138,6 +142,7 @@ export default function page() {
                   </p>
                 </CardContent>
               </Card>
+              <TodayAbsentees />
             </div>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-7">
               <div className="col-span-4">

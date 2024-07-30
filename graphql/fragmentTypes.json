@@ -1,0 +1,57 @@
+{
+  "__schema": {
+    "types": [
+      {
+        "kind": "UNION",
+        "name": "SchoolEntity",
+        "possibleTypes": [
+          { "name": "School" },
+          { "name": "Group" },
+          { "name": "Student" },
+          { "name": "Teacher" },
+          { "name": "Conversation" }
+        ]
+      },
+      {
+        "kind": "UNION",
+        "name": "NotificationType",
+        "possibleTypes": [
+          { "name": "Assignment" },
+          { "name": "Calendar" },
+          { "name": "Form" },
+          { "name": "Post" },
+          { "name": "Leave" },
+          { "name": "Payment" }
+        ]
+      },
+      {
+        "kind": "UNION",
+        "name": "ReceiverUnion",
+        "possibleTypes": [
+          { "name": "School" },
+          { "name": "Group" },
+          { "name": "Student" }
+        ]
+      },
+      {
+        "kind": "UNION",
+        "name": "NodeUnion",
+        "possibleTypes": [{ "name": "Payment" }, { "name": "StudentPayment" }]
+      },
+      {
+        "kind": "INTERFACE",
+        "name": "Person",
+        "possibleTypes": [
+          { "name": "Student" },
+          { "name": "Teacher" },
+          { "name": "User" }
+        ]
+      },
+      {
+        "kind": "UNION",
+        "name": "schoolMember",
+        "possibleTypes": [{ "name": "Student" }, { "name": "Teacher" }]
+      }
+    ]
+  }
+}

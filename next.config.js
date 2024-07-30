@@ -1,7 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  reactStrictMode: false,
   images: {
-    domains: ['utfs.io']
+    domains: ['d2lskdrrjd6ltr.cloudfront.net']
   }
 };
 
