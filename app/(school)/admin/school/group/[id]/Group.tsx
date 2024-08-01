@@ -3,7 +3,7 @@ import { useQuery, useMutation } from '@apollo/client';
 import { useToast } from '@/components/ui/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
-import Timeline from './Timeline';
+import Timeline from './TimeLine';
 import Members from './Members';
 import { REMOVE_MEMBERS, GET_GROUP_BY_ID } from './GroupExService';
 import DeleteDialog from './DeleteDialog';

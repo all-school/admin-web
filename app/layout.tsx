@@ -73,15 +73,14 @@ export default async function RootLayout({
   //const session = await auth();
   return (
     <html lang="en" suppressHydrationWarning>
-      {/* <body className={`${inter.className} overflow-hidden`}>
-       
+      {/* <body className={`${inter.className} overflow-hidden`}> */}
+      <body className={`${inter.className} `}>
         <NextTopLoader showSpinner={false} />
-     
-          <Toaster />
-          {children}
-      
-      </body> */}
-      <body>{children}</body>
+
+        <Toaster />
+        {children}
+      </body>
+      {/* <body>{children}</body> */}
     </html>
   );
 }
