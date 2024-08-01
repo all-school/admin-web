@@ -1,10 +1,11 @@
 {
-  "extends": "next/core-web-vitals",
-  "plugins": ["@typescript-eslint"],
+  "extends": "next",
+  "plugins": ["@typescript-eslint", "import/recommended"],
   "rules": {
     "@typescript-eslint/no-unused-vars": ["warn", { "args": "none" }],
     "import/no-unresolved": "error",
     "import/named": "off",
-    "no-console": "warn"
+    "no-console": "warn",
+    "react/no-unescaped-entities": 0
   }
 }
