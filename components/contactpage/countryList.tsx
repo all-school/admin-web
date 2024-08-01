@@ -288,3 +288,84 @@ const countryFullList = [
 ];
 
 export default countryFullList;
+
+// Priority countries
+const PRIORITY_COUNTRIES = ['India', 'United Kingdom', 'United States'];
+
+// G20 countries
+const G20_COUNTRIES = [
+  'Argentina',
+  'Australia',
+  'Brazil',
+  'Canada',
+  'China',
+  'France',
+  'Germany',
+  'India',
+  'Indonesia',
+  'Italy',
+  'Japan',
+  'Mexico',
+  'Russia',
+  'Saudi Arabia',
+  'South Africa',
+  'South Korea',
+  'Turkey',
+  'United Kingdom',
+  'United States'
+];
+
+// EU countries
+const EU_COUNTRIES = [
+  'Austria',
+  'Belgium',
+  'Bulgaria',
+  'Croatia',
+  'Cyprus',
+  'Czech Republic',
+  'Denmark',
+  'Estonia',
+  'Finland',
+  'France',
+  'Germany',
+  'Greece',
+  'Hungary',
+  'Ireland',
+  'Italy',
+  'Latvia',
+  'Lithuania',
+  'Luxembourg',
+  'Malta',
+  'Netherlands',
+  'Poland',
+  'Portugal',
+  'Romania',
+  'Slovakia',
+  'Slovenia',
+  'Spain',
+  'Sweden'
+];
+
+// Combine all countries and remove duplicates
+const allCountries = [
+  ...new Set([...PRIORITY_COUNTRIES, ...G20_COUNTRIES, ...EU_COUNTRIES])
+];
+
+// Sort countries alphabetically, except for priority countries
+const sortedCountries = allCountries.sort((a, b) => {
+  if (PRIORITY_COUNTRIES.includes(a) && PRIORITY_COUNTRIES.includes(b)) {
+    return PRIORITY_COUNTRIES.indexOf(a) - PRIORITY_COUNTRIES.indexOf(b);
+  }
+  if (PRIORITY_COUNTRIES.includes(a)) return -1;
+  if (PRIORITY_COUNTRIES.includes(b)) return 1;
+  return a.localeCompare(b);
+});
+
+// Create the final country list in the format needed for the Select component
+export const COUNTRY_LIST = [
+  { countryName: '', countryValue: 'Select a country' },
+  ...sortedCountries.map((country) => ({
+    countryName: country,
+    countryValue: country
+  }))
+];
