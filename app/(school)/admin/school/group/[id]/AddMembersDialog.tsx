@@ -39,7 +39,7 @@ const AddMembersDialog = ({ title, open, setOpen, group, groupRefetch }) => {
           toast({ title: data.addMembers.error, variant: 'destructive' });
           resetState();
         } else {
-          toast({ title: 'Members added to group', variant: 'success' });
+          toast({ title: 'Members added to group', variant: 'default' });
           groupRefetch();
           handleClose();
         }

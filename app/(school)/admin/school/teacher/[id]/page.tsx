@@ -34,7 +34,7 @@ const TeacherDetailsContent = ({ params }) => {
         toast({
           title: 'Success',
           description: 'Teacher updated successfully',
-          variant: 'success'
+          variant: 'default'
         });
         refetch();
         setEditDialogOpen(false);
@@ -55,7 +55,7 @@ const TeacherDetailsContent = ({ params }) => {
       toast({
         title: 'Success',
         description: 'Invitation email has been resent',
-        variant: 'success'
+        variant: 'default'
       });
     },
     onError(error) {

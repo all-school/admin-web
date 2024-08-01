@@ -83,7 +83,7 @@ function UpdateSchool({ schoolData, refetch }) {
       toast({
         title: 'Success',
         description: 'School details updated successfully',
-        variant: 'success'
+        variant: 'default'
       });
     } catch (error) {
       toast({

@@ -136,7 +136,7 @@ export function SignInForm() {
           });
         setCountries(filteredCountries);
         setSelectedCountry(
-          filteredCountries.find((c) => c.name === 'India') ||
+          filteredCountries.find((c: Country) => c.name === 'India') ||
             filteredCountries[0]
         );
         setIsLoadingCountries(false);
@@ -185,7 +185,7 @@ export function SignInForm() {
         toast({
           title: 'Email not confirmed',
           description: 'Please confirm your email address to sign in.',
-          variant: 'warning'
+          variant: 'destructive'
         });
       } else {
         toast({
@@ -210,7 +210,7 @@ export function SignInForm() {
           title: 'Confirmation email sent',
           description:
             'Please check your inbox and confirm your email address.',
-          variant: 'success'
+          variant: 'default'
         });
       }
     } catch (error) {

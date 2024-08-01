@@ -144,7 +144,6 @@ function SignUpForm() {
 
   const [signUpByPhone] = useMutation(SIGNUP_BY_PHONE);
   const [signUpByEmail] = useMutation(SIGNUP_BY_EMAIL);
-
   useEffect(() => {
     let isMounted = true;
     const fetchCountries = async () => {
@@ -179,7 +178,7 @@ function SignUpForm() {
           setFormState((prev) => ({
             ...prev,
             selectedCountry:
-              filteredCountries.find((c) => c.name === 'India') ||
+              filteredCountries.find((c: Country) => c.name === 'India') ||
               filteredCountries[0]
           }));
           setIsLoadingCountries(false);
@@ -251,7 +250,7 @@ function SignUpForm() {
               title: 'Sign up successful',
               description:
                 'Please verify your phone number to complete the registration.',
-              variant: 'success'
+              variant: 'default'
             });
           }
         } else {
@@ -265,7 +264,7 @@ function SignUpForm() {
             toast({
               title: 'Sign up successful',
               description: 'Please check your email to verify your account.',
-              variant: 'success'
+              variant: 'default'
             });
           }
         }

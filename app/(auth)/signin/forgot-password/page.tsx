@@ -47,7 +47,7 @@ function ForgotPasswordForm() {
           title: 'Password reset email sent',
           description:
             'Please check your inbox for instructions to reset your password.',
-          variant: 'success'
+          variant: 'default' // Changed from 'success' to 'default'
         });
       } else {
         throw new Error('Failed to send password reset email');

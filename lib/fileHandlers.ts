@@ -87,7 +87,7 @@ export const Upload = async (file, id, role, refetch, setUploading) => {
       toast({
         title: 'Success',
         description: 'File uploaded and database updated successfully',
-        variant: 'success'
+        variant: 'default'
       });
 
       return addedDocument.signedUrl;
@@ -160,7 +160,7 @@ export const Delete = async (
       toast({
         title: 'Success',
         description: 'File deleted successfully',
-        variant: 'success'
+        variant: 'default'
       });
     } else {
       throw new Error('Delete operation failed');

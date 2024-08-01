@@ -18,7 +18,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 import { ApolloProvider } from '@apollo/client';
-import client from '@/lib/apollo-client';
+//import client from '@/lib/apollo-client';
 export default function page() {
   return (
     <ScrollArea className="h-full">
