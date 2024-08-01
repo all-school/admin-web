@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils';
 import { ChevronLeft, Menu } from 'lucide-react';
 import { useSidebar } from '@/hooks/useSidebar';
 import { motion } from 'framer-motion';
-
+import Link from 'next/link';
 type SidebarProps = {
   className?: string;
 };
@@ -59,9 +59,11 @@ export default function Sidebar({ className }: SidebarProps) {
             animate={isMinimized ? { opacity: 0 } : { opacity: 1 }}
             transition={{ duration: 0.3 }}
           >
-            <h2 className="mb-2 px-4 text-lg font-semibold tracking-tight text-purple-700 dark:text-purple-300">
-              Dashboard
-            </h2>
+            <Link href="/admin">
+              <h2 className="mb-2 px-4 text-lg font-semibold tracking-tight text-purple-700 hover:underline dark:text-purple-300">
+                Dashboard
+              </h2>
+            </Link>
           </motion.div>
           <div className="mt-3 space-y-1">
             <DashboardNav items={navItems} />

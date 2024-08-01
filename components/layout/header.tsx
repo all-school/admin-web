@@ -24,22 +24,10 @@ export default function Header() {
     <div className="fixed left-0 right-0 top-0 z-20 border-b bg-gradient-to-b from-background to-background/80 backdrop-blur-sm dark:border-gray-800">
       <nav className="flex h-16 items-center justify-between px-4">
         <div className="hidden lg:block">
-          <Link
-            href={'https://github.com/Kiranism/next-shadcn-dashboard-starter'}
-            target="_blank"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="mr-2 h-6 w-6 text-foreground/80"
-            >
-              <path d="M15 6v12a3 3 0 1 0 3-3H6a3 3 0 1 0 3 3V6a3 3 0 1 0-3 3h12a3 3 0 1 0-3-3" />
-            </svg>
+          <Link href="/admin" className="flex flex-shrink-0 items-center">
+            <span className="text-2xl font-bold text-indigo-600">
+              allschool.
+            </span>
           </Link>
         </div>
         <div className={cn('block lg:!hidden')}>
