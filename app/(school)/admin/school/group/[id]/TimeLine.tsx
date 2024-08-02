@@ -1,5 +1,4 @@
-// Timeline.jsx
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useQuery } from '@apollo/client';
 import { GET_POSTS_BY_GROUP } from './GroupExService';
 import { useToast } from '@/components/ui/use-toast';
@@ -10,7 +9,7 @@ import About from './About';
 import LoadMoreButton from './LoadMoreButton';
 import { PAGINATION_POST_ITEMS_PER_PAGE } from '@/constants';
 
-const Timeline = ({ group, school, userName, role, headline, pic }) => {
+const Timeline = ({ group, userName, pic }) => {
   const { toast } = useToast();
   const [isLoadingMore, setIsLoadingMore] = useState(false);
 
@@ -22,11 +21,9 @@ const Timeline = ({ group, school, userName, role, headline, pic }) => {
     }
   );
 
-  const handleRefetch = () => {
-    refetch();
-  };
+  const handleRefetch = useCallback(() => refetch(), [refetch]);
 
-  const handleLoadMore = async () => {
+  const handleLoadMore = useCallback(async () => {
     if (isLoadingMore || !data?.posts?.pageInfo.hasNext) return;
 
     setIsLoadingMore(true);
@@ -52,14 +49,9 @@ const Timeline = ({ group, school, userName, role, headline, pic }) => {
     } finally {
       setIsLoadingMore(false);
     }
-  };
+  }, [isLoadingMore, data, fetchMore, group.id]);
 
-  if (loading && !data)
-    return (
-      <div className="flex h-64 items-center justify-center">
-        <Skeleton className="h-12 w-12 rounded-full" />
-      </div>
-    );
+  if (loading && !data) return <Skeleton className="h-64 w-full" />;
   if (error) {
     toast({
       title: 'Error',
@@ -78,29 +70,25 @@ const Timeline = ({ group, school, userName, role, headline, pic }) => {
         <div className="w-full md:w-1/3">
           <About user={userName} group={group} />
         </div>
-        <div className="w-full md:w-2/3">
-          <div className="space-y-6">
-            <PostCreationForm
-              userName={userName}
-              pic={pic}
-              onPostCreated={handleRefetch}
+        <div className="w-full space-y-6 md:w-2/3">
+          <PostCreationForm
+            userName={userName}
+            pic={pic}
+            onPostCreated={handleRefetch}
+          />
+          {posts.map(({ node: post }) => (
+            <PostCard
+              key={post.id}
+              post={post}
+              onPostUpdated={handleRefetch}
+              currentUser={userName}
             />
-
-            {posts.map(({ node: post }) => (
-              <PostCard
-                key={post.id}
-                post={post}
-                onPostUpdated={handleRefetch}
-                currentUser={userName}
-              />
-            ))}
-
-            <LoadMoreButton
-              pageInfo={pageInfo}
-              isLoadingMore={isLoadingMore}
-              onLoadMore={handleLoadMore}
-            />
-          </div>
+          ))}
+          <LoadMoreButton
+            pageInfo={pageInfo}
+            isLoadingMore={isLoadingMore}
+            onLoadMore={handleLoadMore}
+          />
         </div>
       </div>
     </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, Suspense } from 'react';
 import { useParams } from 'next/navigation';
 import { ApolloProvider, useQuery } from '@apollo/client';
 import client from '@/graphql/client';
@@ -40,23 +40,35 @@ const AssignmentDetailPageContent = () => {
   const assignment = data?.assignment;
 
   return (
-    <div className="container mx-auto p-4">
+    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <Header assignment={assignment} setEditDialogOpen={setEditDialogOpen} />
-      <Card className="mt-4">
-        <CardContent>
-          <Tabs value={currentTab} onValueChange={setCurrentTab}>
-            <TabsList>
-              <TabsTrigger value="assignment">Assignment</TabsTrigger>
-              <TabsTrigger value="submission">
+      <Card className="mt-6 shadow-sm">
+        <CardContent className="p-0">
+          <Tabs
+            value={currentTab}
+            onValueChange={setCurrentTab}
+            className="w-full"
+          >
+            <TabsList className="w-full justify-start">
+              <TabsTrigger value="assignment" className="flex-1">
+                Assignment
+              </TabsTrigger>
+              <TabsTrigger value="submission" className="flex-1">
                 Submission ({assignment.noOfResponses})
               </TabsTrigger>
             </TabsList>
-            <TabsContent value="assignment">
-              <AssignmentDetail assignment={assignment} />
-            </TabsContent>
-            <TabsContent value="submission">
-              <ResponseTab assignmentId={id} />
-            </TabsContent>
+            <div className="p-6">
+              <TabsContent value="assignment">
+                <Suspense fallback={<LoadingSkeleton />}>
+                  <AssignmentDetail assignment={assignment} />
+                </Suspense>
+              </TabsContent>
+              <TabsContent value="submission">
+                <Suspense fallback={<LoadingSkeleton />}>
+                  <ResponseTab assignmentId={id} />
+                </Suspense>
+              </TabsContent>
+            </div>
           </Tabs>
         </CardContent>
       </Card>
@@ -71,16 +83,11 @@ const AssignmentDetailPageContent = () => {
 };
 
 const LoadingSkeleton = () => (
-  <div className="container mx-auto p-4">
-    <Skeleton className="mb-4 h-10 w-1/4" />
-    <Card>
-      <CardContent>
-        <Skeleton className="mb-4 h-8 w-1/3" />
-        <Skeleton className="mb-2 h-4 w-full" />
-        <Skeleton className="mb-2 h-4 w-full" />
-        <Skeleton className="h-4 w-2/3" />
-      </CardContent>
-    </Card>
+  <div className="space-y-4">
+    <Skeleton className="h-10 w-full max-w-md" />
+    <Skeleton className="h-4 w-full" />
+    <Skeleton className="h-4 w-2/3" />
+    <Skeleton className="h-4 w-1/2" />
   </div>
 );
 

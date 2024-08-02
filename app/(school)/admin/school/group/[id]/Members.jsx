@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useMutation } from '@apollo/client';
 import { useToast } from '@/components/ui/use-toast';
 import { Card, CardContent } from '@/components/ui/card';
@@ -24,8 +24,46 @@ import { MoreVertical, Trash2 } from 'lucide-react';
 
 const ITEMS_PER_PAGE = 15;
 
+const MemberListItem = React.memo(({ member, onRemove }) => (
+  <div className="flex items-center justify-between rounded-lg bg-white p-4 shadow">
+    <div className="flex items-center space-x-4">
+      <Avatar>
+        <AvatarImage
+          src={member.profilePicture?.signedUrl}
+          alt={`${member.firstName} ${member.lastName}`}
+        />
+        <AvatarFallback>
+          {member.firstName[0]}
+          {member.lastName[0]}
+        </AvatarFallback>
+      </Avatar>
+      <div>
+        <p className="font-medium">
+          {member.firstName} {member.lastName}
+        </p>
+        <p className="text-sm text-gray-500">{member.email}</p>
+      </div>
+    </div>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" className="h-8 w-8 p-0">
+          <span className="sr-only">Open menu</span>
+          <MoreVertical className="h-4 w-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem onClick={() => onRemove(member.id)}>
+          <Trash2 className="mr-2 h-4 w-4" />
+          <span>Remove member</span>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  </div>
+));
+
+MemberListItem.displayName = 'MemberListItem';
+
 function Members({ group, refetch }) {
-  const [rows, setRows] = useState(group.members || []);
   const [searched, setSearched] = useState('');
   const [page, setPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(ITEMS_PER_PAGE);
@@ -33,101 +71,91 @@ function Members({ group, refetch }) {
   const [selectedMemberId, setSelectedMemberId] = useState(null);
   const { toast } = useToast();
 
-  const [
-    removeMembers,
-    { loading: removeMembersLoading, error: removeMembersError }
-  ] = useMutation(REMOVE_MEMBERS, {
-    onCompleted(data) {
-      if (data.removeMembers.error) {
+  const [removeMembers, { loading: removeMembersLoading }] = useMutation(
+    REMOVE_MEMBERS,
+    {
+      onCompleted(data) {
+        if (data.removeMembers.error) {
+          toast({
+            title: 'Error',
+            description: data.removeMembers.error,
+            variant: 'destructive'
+          });
+        } else {
+          toast({
+            title: 'Success',
+            description: 'Member removed from the group'
+          });
+          refetch();
+        }
+        setDeleteDialogOpen(false);
+      },
+      onError() {
         toast({
           title: 'Error',
-          description: data.removeMembers.error,
+          description: 'Something went wrong. Please try again',
           variant: 'destructive'
         });
-      } else {
-        toast({
-          title: 'Success',
-          description: 'Member removed from the group'
-        });
-        refetch();
+        setDeleteDialogOpen(false);
       }
-      setDeleteDialogOpen(false);
-    },
-    onError(error) {
-      toast({
-        title: 'Error',
-        description: 'Something went wrong. Please try again',
-        variant: 'destructive'
-      });
-      setDeleteDialogOpen(false);
     }
-  });
+  );
 
-  useEffect(() => {
-    setRows(group.members || []);
-  }, [group.members]);
-
-  const requestSearch = (searchedVal) => {
-    const filteredRows = group.members.filter((member) => {
+  const filteredRows = useMemo(() => {
+    return (group.members || []).filter((member) => {
       const name = `${member.firstName} ${member.lastName}`.toLowerCase();
-      return name.includes(searchedVal.toLowerCase());
+      return name.includes(searched.toLowerCase());
     });
-    setRows(filteredRows);
+  }, [group.members, searched]);
+
+  const totalPages = Math.ceil(filteredRows.length / itemsPerPage);
+  const currentPageData = useMemo(() => {
+    const startIndex = (page - 1) * itemsPerPage;
+    return filteredRows.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredRows, page, itemsPerPage]);
+
+  const handleSearchChange = useCallback((e) => {
+    setSearched(e.target.value);
     setPage(1);
-  };
+  }, []);
 
-  const handleChangePage = (newPage) => {
-    setPage(newPage);
-  };
+  const handleChangePage = useCallback((newPage) => setPage(newPage), []);
 
-  const handleChangeItemsPerPage = (value) => {
+  const handleChangeItemsPerPage = useCallback((value) => {
     setItemsPerPage(parseInt(value));
     setPage(1);
-  };
+  }, []);
 
-  const handleDeleteClick = (memberId) => {
+  const handleDeleteClick = useCallback((memberId) => {
     setSelectedMemberId(memberId);
     setDeleteDialogOpen(true);
-  };
+  }, []);
 
-  const handleDeleteConfirm = () => {
+  const handleDeleteConfirm = useCallback(() => {
     removeMembers({
-      variables: {
-        groupId: group.id,
-        members: [selectedMemberId]
-      }
+      variables: { groupId: group.id, members: [selectedMemberId] }
     });
-  };
-
-  const totalPages = Math.ceil(rows.length / itemsPerPage);
-  const startIndex = (page - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentPageData = rows.slice(startIndex, endIndex);
+  }, [removeMembers, group.id, selectedMemberId]);
 
   return (
     <Card>
-      <CardContent className="p-6">
-        <div className="mb-4">
-          <Input
-            placeholder="Search members..."
-            value={searched}
-            onChange={(e) => {
-              setSearched(e.target.value);
-              requestSearch(e.target.value);
-            }}
-            className="max-w-sm"
-          />
-        </div>
+      <CardContent className="space-y-4 p-6">
+        <Input
+          placeholder="Search members..."
+          value={searched}
+          onChange={handleSearchChange}
+          className="max-w-sm"
+        />
 
-        {rows.length === 0 ? (
+        {filteredRows.length === 0 ? (
           <p className="text-center text-gray-500">
             No members found in this group
           </p>
         ) : (
           <>
-            <p className="mb-4 text-sm text-gray-500">
-              {rows.length} Member{rows.length !== 1 ? 's' : ''} in this group.
-              Page {page} of {totalPages}
+            <p className="text-sm text-gray-500">
+              {filteredRows.length} Member{filteredRows.length !== 1 ? 's' : ''}{' '}
+              in this group. Page {page} of {totalPages}
             </p>
 
             <div className="space-y-4">
@@ -140,7 +168,7 @@ function Members({ group, refetch }) {
               ))}
             </div>
 
-            <div className="mt-4 flex items-center justify-between">
+            <div className="flex items-center justify-between">
               <Select
                 value={itemsPerPage.toString()}
                 onValueChange={handleChangeItemsPerPage}
@@ -199,45 +227,6 @@ function Members({ group, refetch }) {
         deleteLoading={removeMembersLoading}
       />
     </Card>
-  );
-}
-
-function MemberListItem({ member, onRemove }) {
-  return (
-    <div className="flex items-center justify-between rounded-lg bg-white p-4 shadow">
-      <div className="flex items-center space-x-4">
-        <Avatar>
-          <AvatarImage
-            src={member.profilePicture?.signedUrl}
-            alt={`${member.firstName} ${member.lastName}`}
-          />
-          <AvatarFallback>
-            {member.firstName[0]}
-            {member.lastName[0]}
-          </AvatarFallback>
-        </Avatar>
-        <div>
-          <p className="font-medium">
-            {member.firstName} {member.lastName}
-          </p>
-          <p className="text-sm text-gray-500">{member.email}</p>
-        </div>
-      </div>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="h-8 w-8 p-0">
-            <span className="sr-only">Open menu</span>
-            <MoreVertical className="h-4 w-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={() => onRemove(member.id)}>
-            <Trash2 className="mr-2 h-4 w-4" />
-            <span>Remove member</span>
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </div>
   );
 }
 

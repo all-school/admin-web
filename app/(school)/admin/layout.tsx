@@ -65,7 +65,7 @@ export default function DashboardLayout({
   return (
     <>
       <Header />
-      <div className="flex h-screen overflow-hidden bg-gradient-to-br from-purple-50 to-blue-50 dark:from-gray-900 dark:to-gray-800">
+      <div className="flex overflow-hidden bg-gradient-to-br from-purple-50 to-blue-50 dark:from-gray-900 dark:to-gray-800">
         <Sidebar />
         <main className="flex-1 overflow-hidden px-4 pb-4 pt-16">
           <div className="h-full overflow-y-auto rounded-lg bg-white/50 p-6 shadow-lg backdrop-blur-sm dark:bg-gray-800/50">

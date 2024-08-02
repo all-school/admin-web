@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Input } from '@/components/ui/input';
 import {
   Select,
@@ -17,62 +17,61 @@ import {
 } from '@/components/ui/pagination';
 import Response from './Response';
 
+interface Assignment {
+  id: string;
+  student: {
+    firstName: string;
+    lastName: string;
+  };
+  // Add other properties as needed
+}
+
 interface ResultsProps {
-  assignments: any[];
+  assignments: Assignment[];
   refetch: () => void;
 }
 
 const Results: React.FC<ResultsProps> = ({ assignments, refetch }) => {
-  const [rows, setRows] = useState(assignments);
   const [searched, setSearched] = useState('');
   const [itemsPerPage, setItemsPerPage] = useState(15);
   const [page, setPage] = useState(1);
-  const [noOfPages, setNoOfPages] = useState(
-    Math.ceil(assignments.length / itemsPerPage)
-  );
 
-  useEffect(() => {
-    setNoOfPages(Math.ceil(assignments.length / itemsPerPage));
-    if (page === noOfPages) {
-      if (assignments.length % itemsPerPage === 0)
-        setPage(Math.ceil(assignments.length / itemsPerPage));
-    } else if (page > noOfPages) {
-      setPage(1);
-    }
-  }, [assignments.length, itemsPerPage]);
-
-  useEffect(() => {
-    setRows(assignments);
-  }, [assignments]);
-
-  const requestSearch = (searchedVal: string) => {
-    const filteredRows = assignments.filter((row) => {
-      return (
-        row.student.firstName
-          .toLowerCase()
-          .includes(searchedVal.toLowerCase()) ||
-        row.student.lastName.toLowerCase().includes(searchedVal.toLowerCase())
-      );
+  const filteredRows = useMemo(() => {
+    return assignments.filter((row) => {
+      const fullName =
+        `${row.student.firstName} ${row.student.lastName}`.toLowerCase();
+      return fullName.includes(searched.toLowerCase());
     });
+  }, [assignments, searched]);
+
+  const paginatedRows = useMemo(() => {
+    const startIndex = (page - 1) * itemsPerPage;
+    return filteredRows.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredRows, page, itemsPerPage]);
+
+  const noOfPages = Math.ceil(filteredRows.length / itemsPerPage);
+
+  useEffect(() => {
     setPage(1);
-    setNoOfPages(Math.ceil(filteredRows.length / itemsPerPage));
-    setRows(filteredRows);
+  }, [searched, itemsPerPage]);
+
+  const handleSearch = (value: string) => {
+    setSearched(value);
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
+    <div className="space-y-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <Input
           placeholder="Search by student name..."
           value={searched}
-          onChange={(e) => {
-            setSearched(e.target.value);
-            requestSearch(e.target.value);
-          }}
+          onChange={(e) => handleSearch(e.target.value)}
           className="max-w-sm"
         />
         <div className="flex items-center space-x-2">
-          <span className="text-sm text-muted-foreground">Rows per page:</span>
+          <span className="whitespace-nowrap text-sm text-muted-foreground">
+            Rows per page:
+          </span>
           <Select
             value={itemsPerPage.toString()}
             onValueChange={(value) => setItemsPerPage(Number(value))}
@@ -91,38 +90,38 @@ const Results: React.FC<ResultsProps> = ({ assignments, refetch }) => {
         </div>
       </div>
 
-      {rows.length === 0 ? (
-        <div className="text-center text-muted-foreground">
+      {filteredRows.length === 0 ? (
+        <div className="py-8 text-center text-muted-foreground">
           No matching records found
         </div>
       ) : (
         <div className="space-y-4">
-          {rows
-            .slice((page - 1) * itemsPerPage, page * itemsPerPage)
-            .map((assignment) => (
-              <Response
-                key={assignment.id}
-                assignment={assignment}
-                refetch={refetch}
-              />
-            ))}
+          {paginatedRows.map((assignment) => (
+            <Response
+              key={assignment.id}
+              assignment={assignment}
+              refetch={refetch}
+            />
+          ))}
         </div>
       )}
 
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-muted-foreground">
           Showing {(page - 1) * itemsPerPage + 1} to{' '}
-          {Math.min(page * itemsPerPage, rows.length)} of {rows.length} results
+          {Math.min(page * itemsPerPage, filteredRows.length)} of{' '}
+          {filteredRows.length} results
         </p>
         <Pagination>
           <PaginationContent>
             <PaginationItem>
               <PaginationPrevious
-                onClick={() => setPage(Math.max(1, page - 1))}
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page === 1}
               />
             </PaginationItem>
             {[...Array(noOfPages)].map((_, i) => (
-              <PaginationItem key={i + 1}>
+              <PaginationItem key={i + 1} className="hidden sm:inline-block">
                 <PaginationLink
                   onClick={() => setPage(i + 1)}
                   isActive={page === i + 1}
@@ -133,7 +132,8 @@ const Results: React.FC<ResultsProps> = ({ assignments, refetch }) => {
             ))}
             <PaginationItem>
               <PaginationNext
-                onClick={() => setPage(Math.min(noOfPages, page + 1))}
+                onClick={() => setPage((p) => Math.min(noOfPages, p + 1))}
+                disabled={page === noOfPages}
               />
             </PaginationItem>
           </PaginationContent>

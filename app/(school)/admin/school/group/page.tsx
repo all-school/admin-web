@@ -1,6 +1,5 @@
 'use client';
-
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useCallback } from 'react';
 import { ApolloProvider, useQuery, useMutation } from '@apollo/client';
 import { useToast } from '@/components/ui/use-toast';
 import AddDialog from './AddDialog';
@@ -10,35 +9,31 @@ import DeleteDialog from './DeleteDialog';
 import { Loader2 } from 'lucide-react';
 import { GET_GROUPS, DELETE_GROUP } from './GroupExService';
 import Results from './Results';
-
 import client from '@/graphql/client';
 
 function GroupExView() {
   const { toast } = useToast();
-  const idToBeUpdated = useRef(null);
-  const idToBeDeleted = useRef(null);
-  const idToBeSetAttendanceType = useRef(null);
-  const [addDialogOpen, setAddDialogOpen] = useState(false);
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [attendanceTypeDialogOpen, setAttendanceTypeDialogOpen] =
-    useState(false);
-
+  const idRefs = useRef({ update: null, delete: null, attendanceType: null });
+  const [dialogState, setDialogState] = useState({
+    add: false,
+    edit: false,
+    delete: false,
+    attendanceType: false
+  });
   const { data, loading, error, refetch } = useQuery(GET_GROUPS, {
     errorPolicy: 'all'
   });
-
   const [deleteGroup, { loading: deleteGroupLoading }] = useMutation(
     DELETE_GROUP,
     {
-      onCompleted(data) {
+      onCompleted: (data) => {
         if (!data.deleteGroup.error) {
           toast({
             title: 'Success',
             description: 'Group deleted successfully'
           });
           refetch();
-          setDeleteDialogOpen(false);
+          setDialogState((prev) => ({ ...prev, delete: false }));
         } else {
           toast({
             title: 'Error',
@@ -47,48 +42,37 @@ function GroupExView() {
           });
         }
       },
-      onError(error) {
+      onError: (error) =>
         toast({
           title: 'Error',
           description:
             error.message || 'Something went wrong. Please try again',
           variant: 'destructive'
-        });
-      }
+        })
     }
   );
 
-  const handleEdit = (value) => {
-    setEditDialogOpen(true);
-    idToBeUpdated.current = value;
-  };
+  const handleDialogOpen = useCallback((dialogType, id = null) => {
+    setDialogState((prev) => ({ ...prev, [dialogType]: true }));
+    if (id) idRefs.current[dialogType === 'edit' ? 'update' : dialogType] = id;
+  }, []);
 
-  const handleRemove = (value) => {
-    setDeleteDialogOpen(true);
-    idToBeDeleted.current = value;
-  };
+  const handleDialogClose = useCallback(
+    (dialogType) =>
+      setDialogState((prev) => ({ ...prev, [dialogType]: false })),
+    []
+  );
+  const handleDelete = useCallback(
+    (value) => deleteGroup({ variables: { groupId: value } }),
+    [deleteGroup]
+  );
 
-  const handleDelete = (value) => {
-    deleteGroup({
-      variables: {
-        groupId: value
-      }
-    });
-  };
-
-  const handleSetAttendanceType = (value) => {
-    setAttendanceTypeDialogOpen(true);
-    idToBeSetAttendanceType.current = value;
-  };
-
-  if (loading) {
+  if (loading)
     return (
       <div className="flex h-screen items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin" />
       </div>
     );
-  }
-
   if (error) {
     toast({
       title: 'Error',
@@ -99,48 +83,43 @@ function GroupExView() {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-8 pt-8">
-      <div className="container mx-auto">
-        <div className="mt-8">
-          <Results
-            groups={data?.groups || []}
-            handleRemove={handleRemove}
-            handleEdit={handleEdit}
-            handleSetAttendanceType={handleSetAttendanceType}
-          />
-        </div>
-        <AddDialog
-          title="New group"
-          open={addDialogOpen}
-          setOpen={setAddDialogOpen}
-          groupsRefetch={refetch}
-        />
-        <EditGroupDialog
-          title="Edit group"
-          open={editDialogOpen}
-          setOpen={setEditDialogOpen}
-          groupId={idToBeUpdated.current}
-        />
-        <DeleteDialog
-          title="Delete group?"
-          open={deleteDialogOpen}
-          setOpen={setDeleteDialogOpen}
-          handleDelete={handleDelete}
-          groupId={idToBeDeleted.current}
-          deleteGroupLoading={deleteGroupLoading}
-        />
-        <SetAttendanceTypeDialog
-          title="Set attendance type"
-          open={attendanceTypeDialogOpen}
-          setOpen={setAttendanceTypeDialogOpen}
-          groupId={idToBeSetAttendanceType.current}
-        />
-      </div>
+    <div className="container mx-auto py-8">
+      <Results
+        groups={data?.groups || []}
+        handleRemove={(id) => handleDialogOpen('delete', id)}
+        handleEdit={(id) => handleDialogOpen('edit', id)}
+        handleSetAttendanceType={(id) => handleDialogOpen('attendanceType', id)}
+      />
+      <AddDialog
+        title="New group"
+        open={dialogState.add}
+        setOpen={() => handleDialogClose('add')}
+        groupsRefetch={refetch}
+      />
+      <EditGroupDialog
+        title="Edit group"
+        open={dialogState.edit}
+        setOpen={() => handleDialogClose('edit')}
+        groupId={idRefs.current.update}
+      />
+      <DeleteDialog
+        title="Delete group?"
+        open={dialogState.delete}
+        setOpen={() => handleDialogClose('delete')}
+        handleDelete={handleDelete}
+        groupId={idRefs.current.delete}
+        deleteGroupLoading={deleteGroupLoading}
+      />
+      <SetAttendanceTypeDialog
+        title="Set attendance type"
+        open={dialogState.attendanceType}
+        setOpen={() => handleDialogClose('attendanceType')}
+        groupId={idRefs.current.attendanceType}
+      />
     </div>
   );
 }
 
-// Wrap the component with ApolloProvider
 export default function GroupExViewWrapper() {
   return (
     <ApolloProvider client={client}>

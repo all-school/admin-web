@@ -1,5 +1,4 @@
 'use client';
-
 import React, { useState } from 'react';
 import { ApolloProvider, useQuery, useMutation } from '@apollo/client';
 import client from '@/graphql/client';
@@ -97,34 +96,26 @@ function AssignmentPageContent() {
     }
   });
 
-  const [sendAssignment, { loading: sendAssignmentLoading }] = useMutation(
-    SEND_ASSIGNMENT,
-    {
-      onCompleted: () => {
-        toast({
-          title: 'Success',
-          description: 'Assignment sent successfully'
-        });
-        setSendDialogOpen(false);
-        refetch();
-      },
-      onError: (error) => {
-        toast({
-          title: 'Error',
-          description: 'Failed to send assignment. Please try again.',
-          variant: 'destructive'
-        });
-        console.error('Send Assignment Error:', error);
-      }
+  const [sendAssignment] = useMutation(SEND_ASSIGNMENT, {
+    onCompleted: () => {
+      toast({ title: 'Success', description: 'Assignment sent successfully' });
+      setSendDialogOpen(false);
+      refetch();
+    },
+    onError: (error) => {
+      toast({
+        title: 'Error',
+        description: 'Failed to send assignment. Please try again.',
+        variant: 'destructive'
+      });
+      console.error('Send Assignment Error:', error);
     }
-  );
+  });
 
   const handleDelete = async () => {
     if (!idToBeDeleted.current) return;
     try {
-      await deleteAssignment({
-        variables: { id: idToBeDeleted.current }
-      });
+      await deleteAssignment({ variables: { id: idToBeDeleted.current } });
     } catch (error) {
       console.error('Delete Assignment Error:', error);
     }
@@ -137,21 +128,15 @@ function AssignmentPageContent() {
         description: assignmentData.description,
         attachments: assignmentData.attachments,
         dueDateTime: assignmentData.dueDateTime,
-        points: assignmentData.points
+        points: assignmentData.points,
+        ...(assignmentData.closeDateTime && {
+          closeDateTime: assignmentData.closeDateTime
+        })
       };
 
-      // Only include closeDateTime if it's provided
-      if (assignmentData.closeDateTime) {
-        mutationVariables.closeDateTime = assignmentData.closeDateTime;
-      }
-
       if (recipients === null) {
-        // Saving as draft
-        await createAssignment({
-          variables: mutationVariables
-        });
+        await createAssignment({ variables: mutationVariables });
       } else {
-        // Saving and sending
         await createAndSendAssignment({
           variables: {
             ...mutationVariables,
@@ -228,66 +213,68 @@ function AssignmentPageContent() {
   }
 
   return (
-    <div className="min-h-screen bg-background p-8">
-      <div className="container mx-auto">
-        <Header setAddDialogOpen={setAddDialogOpen} />
-        <Tabs value={currentTab} onValueChange={setCurrentTab}>
-          <TabsList>
-            {tabs.map((tab) => (
-              <TabsTrigger key={tab.value} value={tab.value}>
-                {tab.label}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-          <TabsContent value="all">
-            {data && (
-              <Results
-                assignments={data.assignments}
-                handleRemove={handleRemove}
-                handleSend={handleSend}
-                refetch={refetch}
-              />
-            )}
-          </TabsContent>
-          <TabsContent value="draft">
-            <Draft handleRemove={handleRemove} handleSend={handleSend} />
-          </TabsContent>
-          <TabsContent value="assigned">
-            <Assigned handleRemove={handleRemove} handleSend={handleSend} />
-          </TabsContent>
-        </Tabs>
+    <div className="max-w-full px-2 sm:px-4 md:px-6 lg:px-8">
+      <Header setAddDialogOpen={setAddDialogOpen} />
+      <Tabs value={currentTab} onValueChange={setCurrentTab} className="mt-4">
+        <TabsList className="w-full justify-start overflow-x-auto">
+          {tabs.map((tab) => (
+            <TabsTrigger
+              key={tab.value}
+              value={tab.value}
+              className="flex-shrink-0"
+            >
+              {tab.label}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+        <TabsContent value="all" className="mt-4">
+          {data && (
+            <Results
+              assignments={data.assignments}
+              handleRemove={handleRemove}
+              handleSend={handleSend}
+              refetch={refetch}
+            />
+          )}
+        </TabsContent>
+        <TabsContent value="draft" className="mt-4">
+          <Draft handleRemove={handleRemove} handleSend={handleSend} />
+        </TabsContent>
+        <TabsContent value="assigned" className="mt-4">
+          <Assigned handleRemove={handleRemove} handleSend={handleSend} />
+        </TabsContent>
+      </Tabs>
 
-        <AddDialog
-          open={addDialogOpen}
-          setOpen={setAddDialogOpen}
-          onSave={handleSave}
-        />
+      <AddDialog
+        open={addDialogOpen}
+        setOpen={setAddDialogOpen}
+        onSave={handleSave}
+      />
 
-        <SendDialog
-          title="Send assignment"
-          open={sendDialogOpen}
-          setOpen={setSendDialogOpen}
-          onSend={handleSendAssignment} // Changed from handleAssign to onSend
-          value={value}
-          setValue={setValue}
-          selectedValue={selectedValue}
-          setSelectedValue={setSelectedValue}
-          notifyMail={notifyMail}
-          setNotifyMail={setNotifyMail}
-          checkSender={checkSender}
-          setCheckSender={setCheckSender}
-          assignmentId={idToBeSent.current}
-        />
+      <SendDialog
+        title="Send assignment"
+        open={sendDialogOpen}
+        setOpen={setSendDialogOpen}
+        onSend={handleSendAssignment}
+        value={value}
+        setValue={setValue}
+        selectedValue={selectedValue}
+        setSelectedValue={setSelectedValue}
+        notifyMail={notifyMail}
+        setNotifyMail={setNotifyMail}
+        checkSender={checkSender}
+        setCheckSender={setCheckSender}
+        assignmentId={idToBeSent.current}
+      />
 
-        <DeleteDialog
-          title="Delete Assignment?"
-          open={deleteDialogOpen}
-          setOpen={setDeleteDialogOpen}
-          handleDelete={handleDelete}
-          deleteLoading={deleteLoading}
-          recordId={idToBeDeleted.current}
-        />
-      </div>
+      <DeleteDialog
+        title="Delete Assignment?"
+        open={deleteDialogOpen}
+        setOpen={setDeleteDialogOpen}
+        handleDelete={handleDelete}
+        deleteLoading={deleteLoading}
+        recordId={idToBeDeleted.current}
+      />
     </div>
   );
 }

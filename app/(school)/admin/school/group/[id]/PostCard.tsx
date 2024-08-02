@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useMutation } from '@apollo/client';
 import { LIKE_POST } from '@/graphql/PostViewService';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -14,43 +14,58 @@ import { Heart, MessageCircle, Share } from 'lucide-react';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import CommentSection from './CommentSection';
-import { forwardRef } from 'react';
+
 dayjs.extend(relativeTime);
 
-const PostCard = forwardRef(({ post, onPostUpdated, currentUser }, ref) => {
-  const [showComments, setShowComments] = useState(false);
-  const { toast } = useToast();
+const PostCard = React.forwardRef(
+  ({ post, onPostUpdated, currentUser }, ref) => {
+    const [showComments, setShowComments] = useState(false);
+    const { toast } = useToast();
 
-  const [likePost] = useMutation(LIKE_POST, {
-    onCompleted: (data) => {
-      toast({ description: data.likePost ? 'Post liked' : 'Post unliked' });
-      onPostUpdated();
-    },
-    onError: (error) => {
-      toast({
-        title: 'Error liking post',
-        description: error.message,
-        variant: 'destructive'
-      });
-    }
-  });
-
-  const handleLikePost = () => {
-    likePost({
-      variables: {
-        postId: post.id,
-        like: !post.liked
+    const [likePost] = useMutation(LIKE_POST, {
+      onCompleted: (data) => {
+        toast({ description: data.likePost ? 'Post liked' : 'Post unliked' });
+        onPostUpdated();
+      },
+      onError: (error) => {
+        toast({
+          title: 'Error liking post',
+          description: error.message,
+          variant: 'destructive'
+        });
       }
     });
-  };
 
-  const toggleComments = () => {
-    setShowComments(!showComments);
-  };
+    const handleLikePost = useCallback(() => {
+      likePost({ variables: { postId: post.id, like: !post.liked } });
+    }, [likePost, post.id, post.liked]);
 
-  return (
-    <div ref={ref}>
-      <Card className="w-full overflow-hidden bg-white shadow-md transition-shadow duration-300 hover:shadow-lg dark:bg-gray-800">
+    const toggleComments = useCallback(() => {
+      setShowComments((prev) => !prev);
+    }, []);
+
+    const renderPostContent = () => {
+      if (post.content && post.content.contentType.startsWith('image/')) {
+        return (
+          <img
+            src={post.content.signedUrl}
+            alt="Post content"
+            className="h-auto w-full rounded-lg object-cover shadow-sm"
+            onError={(e) => {
+              console.error('Image failed to load:', e);
+              e.target.style.display = 'none';
+            }}
+          />
+        );
+      }
+      return null;
+    };
+
+    return (
+      <Card
+        ref={ref}
+        className="w-full overflow-hidden bg-white shadow-md transition-shadow duration-300 hover:shadow-lg dark:bg-gray-800"
+      >
         <CardHeader className="flex flex-row items-center space-x-4 bg-gray-50 p-4 dark:bg-gray-700">
           <Avatar className="h-12 w-12 border-2 border-white dark:border-gray-600">
             <AvatarImage
@@ -66,9 +81,6 @@ const PostCard = forwardRef(({ post, onPostUpdated, currentUser }, ref) => {
             <h3 className="truncate text-lg font-semibold text-gray-800 dark:text-gray-100">
               {post.createdBy?.user?.firstName} {post.createdBy?.user?.lastName}
             </h3>
-            {/* <p className="text-sm text-gray-600 dark:text-gray-300 truncate">
-            {post.createdBy?.headline || "User"}
-          </p> */}
             <p className="text-xs text-gray-500 dark:text-gray-400">
               {dayjs(post.createdAt).fromNow()}
             </p>
@@ -78,19 +90,7 @@ const PostCard = forwardRef(({ post, onPostUpdated, currentUser }, ref) => {
           <p className="mb-4 whitespace-pre-wrap text-base text-gray-700 dark:text-gray-300">
             {post.text}
           </p>
-          {post.content && post.content.contentType.startsWith('image/') && (
-            <div className="w-full overflow-hidden rounded-lg shadow-sm">
-              <img
-                src={post.content.signedUrl}
-                alt="Post content"
-                className="h-auto w-full object-cover"
-                onError={(e) => {
-                  console.error('Image failed to load:', e);
-                  e.target.style.display = 'none';
-                }}
-              />
-            </div>
-          )}
+          {renderPostContent()}
         </CardContent>
         <CardFooter className="flex items-center justify-between border-t border-gray-200 px-4 pt-4 dark:border-gray-700">
           <Button
@@ -132,8 +132,10 @@ const PostCard = forwardRef(({ post, onPostUpdated, currentUser }, ref) => {
           </div>
         )}
       </Card>
-    </div>
-  );
-});
+    );
+  }
+);
+
+PostCard.displayName = 'PostCard';
 
 export default PostCard;

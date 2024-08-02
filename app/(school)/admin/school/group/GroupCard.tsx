@@ -20,6 +20,12 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 
+const groupTypeMap = {
+  ACADEMIC: 'Academic',
+  NONACADEMIC: 'Non Academic',
+  OTHER: 'Other'
+};
+
 const GroupCard = ({
   group,
   handleEdit,
@@ -27,19 +33,6 @@ const GroupCard = ({
   handleSetAttendanceType
 }) => {
   const pathname = usePathname();
-
-  const getGroupTypeText = (type) => {
-    switch (type) {
-      case 'ACADEMIC':
-        return 'Academic';
-      case 'NONACADEMIC':
-        return 'Non Academic';
-      case 'OTHER':
-        return 'Other';
-      default:
-        return type;
-    }
-  };
 
   return (
     <Card className="flex h-full flex-col">
@@ -54,31 +47,28 @@ const GroupCard = ({
             />
           </div>
         )}
-        <div className="absolute right-2 top-2">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <MoreVertical className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => handleEdit(group.id)}>
-                <Edit className="mr-2 h-4 w-4" />
-                Edit
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleRemove(group.id)}>
-                <Trash2 className="mr-2 h-4 w-4" />
-                Delete
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => handleSetAttendanceType(group.id)}
-              >
-                <Settings className="mr-2 h-4 w-4" />
-                Attendance type
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute right-2 top-2"
+            >
+              <MoreVertical className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => handleEdit(group.id)}>
+              <Edit className="mr-2 h-4 w-4" /> Edit
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleRemove(group.id)}>
+              <Trash2 className="mr-2 h-4 w-4" /> Delete
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleSetAttendanceType(group.id)}>
+              <Settings className="mr-2 h-4 w-4" /> Attendance type
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </CardHeader>
       <CardContent className="flex-grow">
         <div className="mb-4 flex items-center space-x-4">
@@ -98,7 +88,7 @@ const GroupCard = ({
               </h3>
             </Link>
             <p className="text-sm text-muted-foreground">
-              {getGroupTypeText(group.type)}
+              {groupTypeMap[group.type] || group.type}
             </p>
           </div>
         </div>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Input } from '@/components/ui/input';
 import {
   Select,
@@ -19,93 +19,74 @@ const Results = ({
   refetch,
   groups
 }) => {
-  const [rows, setRows] = useState(groups);
   const [searched, setSearched] = useState('');
   const [mode, setMode] = useState('grid');
   const [itemsPerPage, setItemsPerPage] = useState(15);
   const [page, setPage] = useState(1);
-  const [noOfPages, setNoOfPages] = useState(
-    Math.ceil(groups.length / itemsPerPage)
+
+  const filteredRows = useMemo(
+    () =>
+      groups.filter((row) =>
+        row.name.toLowerCase().includes(searched.toLowerCase())
+      ),
+    [groups, searched]
+  );
+
+  const noOfPages = Math.ceil(filteredRows.length / itemsPerPage);
+  const paginatedRows = filteredRows.slice(
+    (page - 1) * itemsPerPage,
+    page * itemsPerPage
   );
 
   useEffect(() => {
-    setNoOfPages(Math.ceil(rows.length / itemsPerPage));
-    if (page > Math.ceil(rows.length / itemsPerPage)) {
-      setPage(1);
-    }
-  }, [rows.length, itemsPerPage]);
-
-  useEffect(() => {
-    setRows(groups);
-  }, [groups]);
-
-  const handleRowsChange = (value) => {
     setPage(1);
-    setItemsPerPage(Number(value));
-  };
-
-  const requestSearch = (searchedVal) => {
-    const filteredRows = groups.filter((row) => {
-      return row.name.toLowerCase().includes(searchedVal.toLowerCase());
-    });
-    setPage(1);
-    setRows(filteredRows);
-  };
-
-  const clearSearch = () => {
-    setSearched('');
-    setRows(groups);
-  };
+  }, [searched, itemsPerPage]);
 
   return (
-    <div className="flex h-[calc(100vh-200px)] flex-col">
-      <div className="mb-4 space-y-4">
-        <div className="flex items-center space-x-2">
-          <div className="relative flex-grow">
-            <Input
-              placeholder="Type group name to search..."
-              value={searched}
-              onChange={(e) => {
-                setSearched(e.target.value);
-                requestSearch(e.target.value);
-              }}
-              className="pr-8"
-            />
-            {searched && (
-              <button
-                onClick={clearSearch}
-                className="absolute right-2 top-1/2 -translate-y-1/2 transform"
-              >
-                <X className="h-4 w-4 text-gray-500" />
-              </button>
-            )}
-          </div>
-          <Button variant="outline" size="icon">
-            <Search className="h-4 w-4" />
-          </Button>
+    <div className="flex h-[calc(100vh-200px)] flex-col space-y-4">
+      <div className="flex items-center space-x-2">
+        <div className="relative flex-grow">
+          <Input
+            placeholder="Type group name to search..."
+            value={searched}
+            onChange={(e) => setSearched(e.target.value)}
+            className="pr-8"
+          />
+          {searched && (
+            <button
+              onClick={() => setSearched('')}
+              className="absolute right-2 top-1/2 -translate-y-1/2 transform"
+            >
+              <X className="h-4 w-4 text-gray-500" />
+            </button>
+          )}
         </div>
+        <Button variant="outline" size="icon">
+          <Search className="h-4 w-4" />
+        </Button>
+      </div>
 
-        <div className="flex items-center justify-between">
-          <p className="text-sm text-muted-foreground">
-            {rows.length} {rows.length === 1 ? 'Record' : 'Records'} found. Page{' '}
-            {page} of {noOfPages}
-          </p>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setMode(mode === 'grid' ? 'list' : 'grid')}
-          >
-            {mode === 'grid' ? (
-              <List className="h-4 w-4" />
-            ) : (
-              <LayoutGrid className="h-4 w-4" />
-            )}
-          </Button>
-        </div>
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-muted-foreground">
+          {filteredRows.length}{' '}
+          {filteredRows.length === 1 ? 'Record' : 'Records'} found. Page {page}{' '}
+          of {noOfPages}
+        </p>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setMode(mode === 'grid' ? 'list' : 'grid')}
+        >
+          {mode === 'grid' ? (
+            <List className="h-4 w-4" />
+          ) : (
+            <LayoutGrid className="h-4 w-4" />
+          )}
+        </Button>
       </div>
 
       <div className="flex-grow overflow-auto">
-        {rows.length === 0 ? (
+        {filteredRows.length === 0 ? (
           <div className="py-4 text-center">
             <p className="text-muted-foreground">
               Sorry, no matching records found
@@ -119,25 +100,26 @@ const Results = ({
                 : 'grid-cols-1'
             } gap-4`}
           >
-            {rows
-              .slice((page - 1) * itemsPerPage, page * itemsPerPage)
-              .map((group) => (
-                <GroupCard
-                  key={group.id}
-                  group={group}
-                  handleEdit={handleEdit}
-                  handleRemove={handleRemove}
-                  handleSetAttendanceType={handleSetAttendanceType}
-                  refetch={refetch}
-                />
-              ))}
+            {paginatedRows.map((group) => (
+              <GroupCard
+                key={group.id}
+                group={group}
+                handleEdit={handleEdit}
+                handleRemove={handleRemove}
+                handleSetAttendanceType={handleSetAttendanceType}
+                refetch={refetch}
+              />
+            ))}
           </div>
         )}
       </div>
 
-      {rows.length > 0 && (
-        <div className="mt-4 flex items-center justify-between border-t pt-4">
-          <Select value={String(itemsPerPage)} onValueChange={handleRowsChange}>
+      {filteredRows.length > 0 && (
+        <div className="flex items-center justify-between border-t pt-4">
+          <Select
+            value={String(itemsPerPage)}
+            onValueChange={(value) => setItemsPerPage(Number(value))}
+          >
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Records per page" />
             </SelectTrigger>
@@ -154,7 +136,7 @@ const Results = ({
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setPage(Math.max(1, page - 1))}
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={page === 1}
             >
               Previous
@@ -165,7 +147,7 @@ const Results = ({
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setPage(Math.min(noOfPages, page + 1))}
+              onClick={() => setPage((p) => Math.min(noOfPages, p + 1))}
               disabled={page === noOfPages}
             >
               Next
