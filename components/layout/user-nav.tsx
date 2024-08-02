@@ -17,27 +17,13 @@ import { Input } from '@/components/ui/input';
 import { gql } from '@apollo/client';
 import apolloClient from '@/lib/apolloClient';
 import { useToast } from '@/components/ui/use-toast';
-import { useUserStore } from '@/stores/userStore';
+import { useAuthStore } from '@/stores/authStore'; // Import the authStore
 import { Loader2, User, UserPlus, UserMinus, Search } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 const SIGN_OUT = gql`
   mutation {
     signOut
-  }
-`;
-
-const CHECK_AUTH = gql`
-  query {
-    me {
-      id
-      firstName
-      lastName
-      email
-      profilePicture {
-        url
-      }
-    }
   }
 `;
 
@@ -107,57 +93,35 @@ const SET_USER = gql`
   }
 `;
 
-let authCheckPerformed = false;
-
 const getInitials = (firstName: string, lastName: string) => {
   const firstInitial =
     firstName && firstName.length > 0 ? firstName[0].toUpperCase() : '';
   const lastInitial =
     lastName && lastName.length > 0 ? lastName[0].toUpperCase() : '';
-  return firstInitial + lastInitial || 'U'; // 'U' for Unknown if both are empty
+  return firstInitial + lastInitial || 'U';
 };
 
 export function UserNav() {
   const router = useRouter();
   const { toast } = useToast();
-  const [loading, setLoading] = useState(!authCheckPerformed);
   const [userAccountsData, setUserAccountsData] = useState<any>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const user = useUserStore((state) => state.user);
-  const setUserData = useUserStore((state) => state.setUserData);
-  const clearUserData = useUserStore((state) => state.clearUserData);
+
+  // Use the authStore
+  const { user, isAuthenticated, isLoading, logout, checkAuth } =
+    useAuthStore();
 
   useEffect(() => {
-    const checkAuth = async () => {
-      if (authCheckPerformed) {
-        setLoading(false);
-        return;
-      }
+    if (!isAuthenticated && !isLoading) {
+      checkAuth();
+    }
+  }, [isAuthenticated, isLoading, checkAuth]);
 
-      try {
-        const { data } = await apolloClient.query({
-          query: CHECK_AUTH,
-          fetchPolicy: 'network-only'
-        });
-        if (data.me) {
-          setUserData({ user: data.me });
-          fetchUserAccounts();
-        } else {
-          clearUserData();
-          router.push('/signin');
-        }
-      } catch (error) {
-        console.error('Auth check error:', error);
-        clearUserData();
-        router.push('/signin');
-      } finally {
-        setLoading(false);
-        authCheckPerformed = true;
-      }
-    };
-
-    checkAuth();
-  }, [router, setUserData, clearUserData]);
+  useEffect(() => {
+    if (isAuthenticated && !userAccountsData) {
+      fetchUserAccounts();
+    }
+  }, [isAuthenticated, userAccountsData]);
 
   const fetchUserAccounts = async () => {
     try {
@@ -181,8 +145,7 @@ export function UserNav() {
       await apolloClient.mutate({
         mutation: SIGN_OUT
       });
-      clearUserData();
-      authCheckPerformed = false;
+      logout();
       router.push('/signin');
     } catch (error) {
       console.error('Sign out error:', error);
@@ -220,13 +183,10 @@ export function UserNav() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    // Implement your search logic here
     console.log('Searching for:', searchQuery);
-    // You can add your search functionality here, such as navigating to a search results page
-    // or filtering content based on the search query
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <Button variant="ghost" className="relative h-8 w-8 rounded-full">
         <Loader2 className="h-4 w-4 animate-spin" />
@@ -234,23 +194,11 @@ export function UserNav() {
     );
   }
 
-  if (!user) {
+  if (!isAuthenticated || !user) {
     return null;
   }
 
-  const getIcon = (userType: string) => {
-    switch (userType) {
-      case 'STUDENT':
-        return <User className="mr-2 h-4 w-4" />;
-      case 'SUPPORT_STAFF':
-        return <UserPlus className="mr-2 h-4 w-4" />;
-      case 'TEACHER':
-        return <UserMinus className="mr-2 h-4 w-4" />;
-      default:
-        return <User className="mr-2 h-4 w-4" />;
-    }
-  };
-
+  // Rest of the component remains largely the same...
   return (
     <div className="flex items-center space-x-4">
       <form onSubmit={handleSearch} className="relative">
@@ -290,13 +238,7 @@ export function UserNav() {
             </div>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <DropdownMenuGroup>
-            <DropdownMenuItem>Profile</DropdownMenuItem>
-            <DropdownMenuItem>Billing</DropdownMenuItem>
-            <DropdownMenuItem>Settings</DropdownMenuItem>
-            <DropdownMenuItem>New Team</DropdownMenuItem>
-          </DropdownMenuGroup>
-          <DropdownMenuSeparator />
+
           {userAccountsData &&
             userAccountsData.myUserAccounts &&
             userAccountsData.myUserAccounts.length > 1 && (
@@ -305,7 +247,8 @@ export function UserNav() {
                 <ScrollArea className="h-[200px]">
                   {userAccountsData.myUserAccounts.map(
                     (account: any) =>
-                      account.id !== user.id && (
+                      account.id !== user.id &&
+                      account.role === 'ADMIN' && (
                         <DropdownMenuItem
                           key={account.id}
                           onSelect={() => handleSwitchAccount(account.id)}
