@@ -16,7 +16,8 @@ import {
   Trash2,
   MoreHorizontal,
   Edit,
-  MessageCircle
+  MessageCircle,
+  Send
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -38,7 +39,9 @@ const Comment = ({
   const [isEditing, setIsEditing] = useState(false);
   const [editedText, setEditedText] = useState(comment.comment);
   const [showReplies, setShowReplies] = useState(false);
-  const [replies, setReplies] = useState([]);
+  const [showReplyInput, setShowReplyInput] = useState(false);
+  const [replyText, setReplyText] = useState('');
+  const [replies, setReplies] = useState(comment.replies || []);
   const { toast } = useToast();
 
   const [fetchReplies, { loading: repliesLoading }] = useLazyQuery(
@@ -70,125 +73,166 @@ const Comment = ({
     setShowReplies(!showReplies);
   };
 
+  const handleReply = () => {
+    onReply(comment.id, replyText, (newReply) => {
+      setReplies([...replies, newReply]);
+      setShowReplyInput(false);
+      setReplyText('');
+      setShowReplies(true);
+    });
+  };
+
   return (
-    <div className={`flex space-x-2 ${depth > 0 ? 'ml-6' : ''} mt-2`}>
-      <Avatar className="h-8 w-8">
-        <AvatarImage
-          src={comment.createdBy.user.profilePicture?.signedUrl}
-          alt={comment.createdBy.user.firstName}
-        />
-        <AvatarFallback>
-          {comment.createdBy.user.firstName[0]}
-          {comment.createdBy.user.lastName[0]}
-        </AvatarFallback>
-      </Avatar>
-      <div className="flex-1">
-        <div className="rounded-lg bg-secondary p-2">
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-semibold">
-              {comment.createdBy.user.firstName}{' '}
-              {comment.createdBy.user.lastName}
-            </span>
-            <div className="flex items-center space-x-2">
-              <span className="text-xs text-muted-foreground">
-                {format(new Date(comment.createdAt), 'PP')}
+    <div className={`mb-4 ${depth > 0 ? 'ml-6' : ''}`}>
+      <div className="flex items-start space-x-3">
+        <Avatar className="h-8 w-8">
+          <AvatarImage
+            src={comment.createdBy.user.profilePicture?.signedUrl}
+            alt={comment.createdBy.user.firstName}
+          />
+          <AvatarFallback>
+            {comment.createdBy.user.firstName[0]}
+            {comment.createdBy.user.lastName[0]}
+          </AvatarFallback>
+        </Avatar>
+        <div className="flex-1">
+          <div className="rounded-lg bg-secondary p-3">
+            <div className="mb-2 flex items-center justify-between">
+              <span className="text-sm font-semibold">
+                {comment.createdBy.user.firstName}{' '}
+                {comment.createdBy.user.lastName}
               </span>
-              {currentUser.id === comment.createdBy.user.id && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm">
-                      <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => setIsEditing(true)}>
-                      <Edit className="mr-2 h-4 w-4" />
-                      Edit
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => onDelete(comment.id)}>
-                      <Trash2 className="mr-2 h-4 w-4" />
-                      Delete
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )}
-            </div>
-          </div>
-          {isEditing ? (
-            <div className="mt-2">
-              <Textarea
-                value={editedText}
-                onChange={(e) => setEditedText(e.target.value)}
-                rows={2}
-              />
-              <div className="mt-2 space-x-2">
-                <Button onClick={handleEdit} size="sm">
-                  Save
-                </Button>
-                <Button
-                  onClick={() => setIsEditing(false)}
-                  variant="outline"
-                  size="sm"
-                >
-                  Cancel
-                </Button>
+              <div className="flex items-center space-x-2">
+                <span className="text-xs text-muted-foreground">
+                  {format(new Date(comment.createdAt), 'PP')}
+                </span>
+                {currentUser.id === comment.createdBy.user.id && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => setIsEditing(true)}>
+                        <Edit className="mr-2 h-4 w-4" />
+                        Edit
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => onDelete(comment.id)}>
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
               </div>
             </div>
-          ) : (
-            <p className="mt-1 text-sm">{comment.comment}</p>
-          )}
-        </div>
-        <div className="mt-1 flex items-center space-x-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => onLike(comment.id, !comment.liked)}
-            className={comment.liked ? 'text-primary' : ''}
-          >
-            <Heart className="mr-1 h-4 w-4" />
-            {comment.noOfLikes}
-          </Button>
-          <Button variant="ghost" size="sm" onClick={() => onReply(comment.id)}>
-            <Reply className="mr-1 h-4 w-4" />
-            Reply
-          </Button>
-          {comment.noOfReplies > 0 && (
-            <Button variant="ghost" size="sm" onClick={handleToggleReplies}>
-              <MessageCircle className="mr-1 h-4 w-4" />
-              {showReplies
-                ? 'Hide Replies'
-                : `View Replies (${comment.noOfReplies})`}
-            </Button>
-          )}
-        </div>
-        {showReplies && (
-          <div className="mt-2">
-            {repliesLoading ? (
-              <p>Loading replies...</p>
-            ) : (
-              replies.map((reply) => (
-                <Comment
-                  key={reply.id}
-                  comment={reply}
-                  currentUser={currentUser}
-                  onReply={onReply}
-                  onLike={onLike}
-                  onDelete={onDelete}
-                  onEdit={onEdit}
-                  depth={depth + 1}
+            {isEditing ? (
+              <div className="mt-2">
+                <Textarea
+                  value={editedText}
+                  onChange={(e) => setEditedText(e.target.value)}
+                  rows={2}
+                  className="mb-2"
                 />
-              ))
+                <div className="flex justify-end space-x-2">
+                  <Button onClick={handleEdit} size="sm">
+                    Save
+                  </Button>
+                  <Button
+                    onClick={() => setIsEditing(false)}
+                    variant="outline"
+                    size="sm"
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <p className="text-sm">{comment.comment}</p>
             )}
           </div>
-        )}
+          <div className="mt-2 flex items-center space-x-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onLike(comment.id, !comment.liked)}
+              className={`h-8 p-0 ${comment.liked ? 'text-primary' : ''}`}
+            >
+              <Heart className="mr-1 h-4 w-4" />
+              <span className="text-xs">{comment.noOfLikes}</span>
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowReplyInput(!showReplyInput)}
+              className="h-8 p-0"
+            >
+              <Reply className="mr-1 h-4 w-4" />
+              <span className="text-xs">Reply</span>
+            </Button>
+            {(replies.length > 0 || comment.noOfReplies > 0) && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleToggleReplies}
+                className="h-8 p-0"
+              >
+                <MessageCircle className="mr-1 h-4 w-4" />
+                <span className="text-xs">
+                  {showReplies
+                    ? 'Hide Replies'
+                    : `View Replies (${replies.length || comment.noOfReplies})`}
+                </span>
+              </Button>
+            )}
+          </div>
+          {showReplyInput && (
+            <div className="mt-2 flex items-center space-x-2">
+              <Textarea
+                placeholder="Write a reply..."
+                value={replyText}
+                onChange={(e) => setReplyText(e.target.value)}
+                rows={1}
+                className="flex-grow"
+              />
+              <Button
+                size="sm"
+                onClick={handleReply}
+                disabled={!replyText.trim()}
+              >
+                <Send className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
+        </div>
       </div>
+      {showReplies && (
+        <div className="mt-2 space-y-4">
+          {repliesLoading ? (
+            <p className="text-sm text-muted-foreground">Loading replies...</p>
+          ) : (
+            replies.map((reply) => (
+              <Comment
+                key={reply.id}
+                comment={reply}
+                currentUser={currentUser}
+                onReply={onReply}
+                onLike={onLike}
+                onDelete={onDelete}
+                onEdit={onEdit}
+                depth={depth + 1}
+              />
+            ))
+          )}
+        </div>
+      )}
     </div>
   );
 };
 
 const CommentSection = ({ postId, currentUser }) => {
   const [newCommentText, setNewCommentText] = useState('');
-  const [replyingTo, setReplyingTo] = useState(null);
   const { toast } = useToast();
 
   const { loading, error, data, refetch } = useQuery(GET_COMMENTS, {
@@ -196,35 +240,52 @@ const CommentSection = ({ postId, currentUser }) => {
     fetchPolicy: 'network-only'
   });
 
-  const [createComment] = useMutation(CREATE_POST_COMMENT, {
-    onCompleted: () => {
-      setNewCommentText('');
-      setReplyingTo(null);
-      refetch();
-      toast({ description: 'Comment added successfully' });
-    },
-    onError: (error) => {
-      toast({
-        title: 'Error adding comment',
-        description: error.message,
-        variant: 'destructive'
-      });
-    }
-  });
+  const [createComment] = useMutation(CREATE_POST_COMMENT);
 
   const [likeComment] = useMutation(LIKE_COMMENT);
   const [deleteComment] = useMutation(DELETE_COMMENT);
 
-  const handleSubmitComment = () => {
+  const handleSubmitComment = async () => {
     if (newCommentText.trim()) {
-      const variables = {
-        postId,
-        comment: newCommentText.trim()
-      };
-      if (replyingTo) {
-        variables.parentCommentId = replyingTo;
+      try {
+        const { data } = await createComment({
+          variables: {
+            postId,
+            comment: newCommentText.trim()
+          }
+        });
+        setNewCommentText('');
+        refetch();
+        toast({ description: 'Comment added successfully' });
+      } catch (error) {
+        toast({
+          title: 'Error adding comment',
+          description: error.message,
+          variant: 'destructive'
+        });
       }
-      createComment({ variables });
+    }
+  };
+
+  const handleReply = async (parentCommentId, replyText, callback) => {
+    if (replyText.trim()) {
+      try {
+        const { data } = await createComment({
+          variables: {
+            postId,
+            parentCommentId,
+            comment: replyText.trim()
+          }
+        });
+        callback(data.createPostComment);
+        toast({ description: 'Reply added successfully' });
+      } catch (error) {
+        toast({
+          title: 'Error adding reply',
+          description: error.message,
+          variant: 'destructive'
+        });
+      }
     }
   };
 
@@ -261,8 +322,8 @@ const CommentSection = ({ postId, currentUser }) => {
   const comments = data?.postComments || [];
 
   return (
-    <div className="mt-4 space-y-4">
-      <div className="flex items-start space-x-2">
+    <div className="mt-6 space-y-6">
+      <div className="flex items-start space-x-3">
         <Avatar className="h-8 w-8">
           <AvatarImage
             src={currentUser.profilePicture?.signedUrl}
@@ -275,34 +336,27 @@ const CommentSection = ({ postId, currentUser }) => {
         </Avatar>
         <div className="flex-1 space-y-2">
           <Textarea
-            placeholder={replyingTo ? 'Write a reply...' : 'Write a comment...'}
+            placeholder="Write a comment..."
             value={newCommentText}
             onChange={(e) => setNewCommentText(e.target.value)}
             rows={2}
           />
-          <div className="flex items-center justify-between">
-            <Button
-              onClick={handleSubmitComment}
-              disabled={!newCommentText.trim()}
-            >
-              {replyingTo ? 'Reply' : 'Comment'}
-            </Button>
-            {replyingTo && (
-              <Button variant="outline" onClick={() => setReplyingTo(null)}>
-                Cancel Reply
-              </Button>
-            )}
-          </div>
+          <Button
+            onClick={handleSubmitComment}
+            disabled={!newCommentText.trim()}
+          >
+            Post Comment
+          </Button>
         </div>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-6">
         {comments.map((comment) => (
           <Comment
             key={comment.id}
             comment={comment}
             currentUser={currentUser}
-            onReply={(commentId) => setReplyingTo(commentId)}
+            onReply={handleReply}
             onLike={handleLikeComment}
             onDelete={handleDeleteComment}
             onEdit={handleEditComment}

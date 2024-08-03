@@ -43,44 +43,45 @@ const PostCard = ({ post, onPostUpdated, currentUser }) => {
     });
   };
 
-  const toggleComments = () => {
-    setShowComments(!showComments);
-  };
+  const toggleComments = () => setShowComments(!showComments);
+
+  const hasLikes = post.noOfLikes > 0;
+  const hasComments = post.noOfComments > 0;
 
   return (
-    <Card className="mb-4 w-full shadow-sm transition-shadow duration-200 hover:shadow-md">
+    <Card className="mb-4 overflow-hidden transition-all duration-300 hover:shadow-lg">
       <CardContent className="p-4">
-        <div className="mb-3 flex items-center space-x-3">
+        <div className="flex items-center space-x-3">
           <Avatar className="h-10 w-10">
             <AvatarImage
               src={post.createdBy?.user?.profilePicture?.signedUrl}
               alt={`${post.createdBy?.user?.firstName} ${post.createdBy?.user?.lastName}`}
             />
-            <AvatarFallback className="bg-gray-200 text-gray-600">
+            <AvatarFallback className="bg-blue-100 text-blue-600">
               {post.createdBy?.user?.firstName?.[0]}
               {post.createdBy?.user?.lastName?.[0]}
             </AvatarFallback>
           </Avatar>
-          <div>
-            <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-200">
+          <div className="flex-grow">
+            <h3 className="text-sm font-semibold text-blue-600">
               {post.createdBy?.user?.firstName} {post.createdBy?.user?.lastName}
             </h3>
-            <p className="text-xs text-gray-500 dark:text-gray-400">
+            <p className="text-xs text-gray-500">
               {dayjs(post.createdAt).fromNow()}
             </p>
           </div>
         </div>
 
-        <p className="mb-3 whitespace-pre-wrap text-sm text-gray-700 dark:text-gray-300">
+        <p className="mt-3 whitespace-pre-wrap text-sm text-gray-700">
           {post.text}
         </p>
 
         {post.content && post.content.contentType.startsWith('image/') && (
-          <div className="mb-3 overflow-hidden rounded-md">
+          <div className="mt-3 overflow-hidden rounded-md border border-gray-200 shadow-sm">
             <img
               src={post.content.signedUrl}
               alt="Post content"
-              className="h-auto w-full object-cover"
+              className="h-auto w-full object-cover transition-transform duration-300 hover:scale-105"
               onError={(e) => {
                 console.error('Image failed to load:', e);
                 e.target.style.display = 'none';
@@ -90,45 +91,49 @@ const PostCard = ({ post, onPostUpdated, currentUser }) => {
         )}
       </CardContent>
 
-      <Separator />
+      <Separator className="bg-gray-200" />
 
-      <CardFooter className="flex justify-between px-4 py-2">
+      <CardFooter className="flex justify-between p-2">
         <Button
           variant="ghost"
           size="sm"
-          className={`flex items-center ${
-            post.liked
-              ? 'text-blue-600 dark:text-blue-400'
-              : 'text-gray-600 dark:text-gray-400'
-          }`}
+          className="flex items-center space-x-1 text-gray-600 transition-colors duration-300 hover:bg-gray-100"
           onClick={handleLikePost}
         >
-          <ThumbsUp className="mr-1 h-4 w-4" />
+          <ThumbsUp
+            className={`h-4 w-4 ${
+              post.liked || hasLikes ? 'text-red-500' : ''
+            }`}
+          />
           <span className="text-xs">{post.noOfLikes}</span>
         </Button>
 
-        <Button
-          variant="ghost"
-          size="sm"
-          className="flex items-center text-gray-600 dark:text-gray-400"
-          onClick={toggleComments}
-        >
-          <MessageSquare className="mr-1 h-4 w-4" />
-          <span className="text-xs">{post.noOfComments}</span>
-        </Button>
+        {post.acceptComment && (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="flex items-center space-x-1 text-gray-600 transition-colors duration-300 hover:bg-gray-100"
+            onClick={toggleComments}
+          >
+            <MessageSquare
+              className={`h-4 w-4 ${hasComments ? 'text-green-500' : ''}`}
+            />
+            <span className="text-xs">{post.noOfComments}</span>
+          </Button>
+        )}
 
         <Button
           variant="ghost"
           size="sm"
-          className="flex items-center text-gray-600 dark:text-gray-400"
+          className="flex items-center space-x-1 text-gray-600 transition-colors duration-300 hover:bg-gray-100"
         >
-          <Share2 className="mr-1 h-4 w-4" />
+          <Share2 className="h-4 w-4" />
           <span className="text-xs">Share</span>
         </Button>
       </CardFooter>
 
-      {showComments && (
-        <div className="bg-gray-50 px-4 py-3 dark:bg-gray-800">
+      {showComments && post.acceptComment && (
+        <div className="bg-gray-50 p-4">
           <CommentSection postId={post.id} currentUser={currentUser} />
         </div>
       )}

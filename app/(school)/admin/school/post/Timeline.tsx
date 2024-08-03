@@ -61,7 +61,7 @@ const Timeline: React.FC<TimelineProps> = ({ userName, headline, pic }) => {
   if (error) return <ErrorMessage message={error.message} />;
 
   return (
-    <div className="mx-auto w-full max-w-3xl space-y-8 px-4 py-8">
+    <div className="mx-auto w-full max-w-4xl space-y-8">
       <Card className="p-6 shadow-md">
         <PostCreationForm
           userName={userName}
