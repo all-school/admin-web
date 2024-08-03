@@ -4,14 +4,18 @@ import { GET_POSTS } from './PostViewService';
 import PostCreationForm from './PostCreationForm';
 import PostCard from './PostCard';
 import LoadMoreButton from './LoadMoreButton';
+import { Card } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const POSTS_PER_PAGE = 10;
 
-const Timeline: React.FC<{ userName: any; headline: string; pic: string }> = ({
-  userName,
-  headline,
-  pic
-}) => {
+interface TimelineProps {
+  userName: any;
+  headline: string;
+  pic: string;
+}
+
+const Timeline: React.FC<TimelineProps> = ({ userName, headline, pic }) => {
   const [isLoadingMore, setIsLoadingMore] = useState(false);
 
   const { data, loading, error, fetchMore, refetch } = useQuery(GET_POSTS, {
@@ -50,31 +54,23 @@ const Timeline: React.FC<{ userName: any; headline: string; pic: string }> = ({
     }
   };
 
-  if (loading && !data)
-    return (
-      <div className="flex h-64 items-center justify-center">
-        <span className="loading loading-spinner loading-lg"></span>
-      </div>
-    );
-  if (error)
-    return (
-      <div className="alert alert-error">
-        Error loading posts: {error.message}
-      </div>
-    );
-
   const posts = data?.posts?.edges || [];
   const pageInfo = data?.posts?.pageInfo;
 
+  if (loading) return <LoadingSkeleton />;
+  if (error) return <ErrorMessage message={error.message} />;
+
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mx-auto max-w-3xl space-y-6">
+    <div className="mx-auto w-full max-w-3xl space-y-8 px-4 py-8">
+      <Card className="p-6 shadow-md">
         <PostCreationForm
           userName={userName}
           pic={pic}
           onPostCreated={handleRefetch}
         />
+      </Card>
 
+      <div className="space-y-6">
         {posts.map(({ node: post }) => (
           <PostCard
             key={post.id}
@@ -83,15 +79,34 @@ const Timeline: React.FC<{ userName: any; headline: string; pic: string }> = ({
             currentUser={userName}
           />
         ))}
-
-        <LoadMoreButton
-          pageInfo={pageInfo}
-          isLoadingMore={isLoadingMore}
-          onLoadMore={handleLoadMore}
-        />
       </div>
+
+      <LoadMoreButton
+        pageInfo={pageInfo}
+        isLoadingMore={isLoadingMore}
+        onLoadMore={handleLoadMore}
+      />
     </div>
   );
 };
+
+const LoadingSkeleton: React.FC = () => (
+  <div className="space-y-4">
+    {[...Array(3)].map((_, index) => (
+      <Card key={index} className="space-y-4 p-4">
+        <Skeleton className="h-12 w-3/4" />
+        <Skeleton className="h-4 w-full" />
+        <Skeleton className="h-4 w-full" />
+        <Skeleton className="h-4 w-2/3" />
+      </Card>
+    ))}
+  </div>
+);
+
+const ErrorMessage: React.FC<{ message: string }> = ({ message }) => (
+  <Card className="border-red-300 bg-red-100 p-4 text-red-700">
+    Error loading posts: {message}
+  </Card>
+);
 
 export default Timeline;

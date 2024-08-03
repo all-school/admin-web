@@ -1,4 +1,3 @@
-// components/Header.js
 'use client';
 
 import React, { useState } from 'react';
@@ -38,8 +37,8 @@ const Header = ({ useraccount, refetch, profileurl, coverPicture }) => {
   };
 
   return (
-    <Card className="w-full overflow-hidden">
-      <div className="relative h-[350px]">
+    <Card className="mb-4 w-full">
+      <div className="relative h-32 sm:h-40 md:h-48 lg:h-56">
         {coverPicture ? (
           <img
             src={useraccount.school?.coverPicture?.signedUrl}
@@ -48,21 +47,21 @@ const Header = ({ useraccount, refetch, profileurl, coverPicture }) => {
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center bg-gray-200">
-            <ImagePlus className="h-12 w-12 text-gray-400" />
+            <ImagePlus className="h-8 w-8 text-gray-400" />
           </div>
         )}
-        <div className="absolute bottom-4 right-4 space-x-2">
+        <div className="absolute bottom-2 right-2 space-x-2">
           <Button
             variant="secondary"
             size="sm"
             onClick={() => document.getElementById('cover-upload').click()}
             disabled={uploading}
           >
-            Change Cover
+            {coverPicture ? 'Change' : 'Upload'}
           </Button>
           {coverPicture && (
             <Button
-              variant="secondary"
+              variant="destructive"
               size="sm"
               onClick={handleDelete}
               disabled={uploading}
@@ -80,35 +79,31 @@ const Header = ({ useraccount, refetch, profileurl, coverPicture }) => {
           disabled={uploading}
         />
       </div>
-      <CardContent className="relative -mt-16 p-4">
-        <div className="flex items-end space-x-5">
-          <div className="relative">
-            <Avatar className="h-32 w-32 ring-4 ring-background">
-              <AvatarImage src={profileurl?.signedUrl} alt="Profile" />
-              <AvatarFallback>
-                {useraccount.school.name.charAt(0)}
-              </AvatarFallback>
-            </Avatar>
-            <label
-              htmlFor="profile-upload"
-              className="absolute bottom-0 right-0 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-primary"
-            >
-              <Camera className="h-4 w-4 text-primary-foreground" />
-            </label>
-            <input
-              id="profile-upload"
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={(e) => handleFileChange(e, 'profile')}
-              disabled={uploading}
-            />
-          </div>
-          <div className="min-w-0 flex-1">
-            <h1 className="truncate text-2xl font-bold text-foreground">
-              {useraccount.school.name}
-            </h1>
-          </div>
+      <CardContent className="flex items-center p-3">
+        <div className="relative -mt-12 mr-4">
+          <Avatar className="h-20 w-20 ring-4 ring-background">
+            <AvatarImage src={profileurl?.signedUrl} alt="Profile" />
+            <AvatarFallback>{useraccount.school.name.charAt(0)}</AvatarFallback>
+          </Avatar>
+          <label
+            htmlFor="profile-upload"
+            className="absolute bottom-0 right-0 flex h-6 w-6 cursor-pointer items-center justify-center rounded-full bg-primary"
+          >
+            <Camera className="h-3 w-3 text-primary-foreground" />
+          </label>
+          <input
+            id="profile-upload"
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => handleFileChange(e, 'profile')}
+            disabled={uploading}
+          />
+        </div>
+        <div className="min-w-0 flex-1">
+          <h1 className="truncate text-lg font-bold text-foreground">
+            {useraccount.school.name}
+          </h1>
         </div>
       </CardContent>
     </Card>

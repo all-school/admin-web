@@ -833,93 +833,31 @@ export const LIKE_COMMENT = gql`
     likePostComment(postCommentId: $postCommentId, like: $like)
   }
 `;
+
 export const CREATE_POST_COMMENT = gql`
   mutation createPostComment(
     $postId: ID!
     $comment: String!
-    $attachment: DocumentInput
     $parentCommentId: ID
   ) {
     createPostComment(
       postId: $postId
       comment: $comment
-      attachment: $attachment
       parentCommentId: $parentCommentId
     ) {
       id
       post {
         id
         text
-        content {
-          id
-          fileName
-          contentType
-          objectKey
-          url
-          signedUrl
-        }
-        school {
-          id
-          name
-        }
-        sharedWith {
-          id
-          receiver {
-            __typename
-            ... on School {
-              id
-              name
-            }
-            ... on Group {
-              id
-              name
-            }
-            ... on Student {
-              id
-              firstName
-              lastName
-            }
-          }
-        }
-        createdBy {
-          user {
-            id
-            firstName
-            lastName
-            profilePicture {
-              id
-              fileName
-              contentType
-              objectKey
-              url
-              signedUrl
-            }
-          }
-          headline
-        }
-        createdAt
         noOfComments
       }
       comment
-      attachment {
-        id
-        fileName
-        contentType
-        objectKey
-        url
-        signedUrl
-      }
       createdBy {
         user {
           id
           firstName
           lastName
           profilePicture {
-            id
-            fileName
-            contentType
-            objectKey
-            url
             signedUrl
           }
         }
