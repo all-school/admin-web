@@ -145,7 +145,7 @@ const PostCreationForm = ({ userName, pic, onPostCreated }) => {
           </Avatar>
           <div className="flex-grow space-y-4">
             <Textarea
-              placeholder={`What's on your mind, ${userName.firstName}?`}
+              placeholder={`Things to share, ${userName.firstName}?`}
               value={postText}
               onChange={(e) => setPostText(e.target.value)}
               className="min-h-[100px] resize-none"
