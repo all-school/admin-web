@@ -46,12 +46,17 @@ const Timeline = ({ group, userName, pic }) => {
       });
     } catch (error) {
       console.error('Error loading more posts:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load more posts. Please try again.',
+        variant: 'destructive'
+      });
     } finally {
       setIsLoadingMore(false);
     }
-  }, [isLoadingMore, data, fetchMore, group.id]);
+  }, [isLoadingMore, data, fetchMore, group.id, toast]);
 
-  if (loading && !data) return <Skeleton className="h-64 w-full" />;
+  if (loading && !data) return <Skeleton className="h-64 w-full rounded-lg" />;
   if (error) {
     toast({
       title: 'Error',
@@ -65,30 +70,34 @@ const Timeline = ({ group, userName, pic }) => {
   const pageInfo = data?.posts?.pageInfo;
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex flex-col gap-6 md:flex-row">
-        <div className="w-full md:w-1/3">
-          <About user={userName} group={group} />
-        </div>
-        <div className="w-full space-y-6 md:w-2/3">
-          <PostCreationForm
-            userName={userName}
-            pic={pic}
-            onPostCreated={handleRefetch}
-          />
-          {posts.map(({ node: post }) => (
-            <PostCard
-              key={post.id}
-              post={post}
-              onPostUpdated={handleRefetch}
-              currentUser={userName}
+    <div className="w-full">
+      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <div className="flex flex-col gap-6 lg:flex-row">
+          <div className="w-full lg:w-1/3">
+            <About user={userName} group={group} />
+          </div>
+          <div className="w-full space-y-6 lg:w-2/3">
+            <PostCreationForm
+              userName={userName}
+              pic={pic}
+              onPostCreated={handleRefetch}
             />
-          ))}
-          <LoadMoreButton
-            pageInfo={pageInfo}
-            isLoadingMore={isLoadingMore}
-            onLoadMore={handleLoadMore}
-          />
+            <div className="space-y-4">
+              {posts.map(({ node: post }) => (
+                <PostCard
+                  key={post.id}
+                  post={post}
+                  onPostUpdated={handleRefetch}
+                  currentUser={userName}
+                />
+              ))}
+            </div>
+            <LoadMoreButton
+              pageInfo={pageInfo}
+              isLoadingMore={isLoadingMore}
+              onLoadMore={handleLoadMore}
+            />
+          </div>
         </div>
       </div>
     </div>

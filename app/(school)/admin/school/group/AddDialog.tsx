@@ -46,28 +46,28 @@ const AddDialog = ({ open, setOpen, groupsRefetch }) => {
     CREATE_GROUP,
     {
       onCompleted(data) {
-        if (data.createGroup.error) {
-          toast({
-            title: 'Error',
-            description: data.createGroup.error,
-            variant: 'destructive'
-          });
-        } else {
+        if (data.createGroup && data.createGroup.group) {
           toast({
             title: 'Success',
-            description: 'Group created'
+            description: 'Group created successfully'
           });
           groupsRefetch();
+          handleClose();
+        } else {
+          toast({
+            title: 'Error',
+            description: 'Failed to create group',
+            variant: 'destructive'
+          });
         }
-        handleClose();
       },
       onError(error) {
         toast({
           title: 'Error',
-          description: 'Something went wrong. Please try again',
+          description:
+            error.message || 'Something went wrong. Please try again',
           variant: 'destructive'
         });
-        handleClose();
       }
     }
   );

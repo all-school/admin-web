@@ -26,7 +26,7 @@ export async function middleware(request: NextRequest) {
       const isValidToken = await verifyToken(token);
       if (isValidToken) {
         // If TOKEN is valid, redirect to dashboard
-        return NextResponse.redirect(new URL('/dashboard', request.url));
+        return NextResponse.redirect(new URL('/admin', request.url));
       }
     }
     // If no token or invalid token, allow access to signin page

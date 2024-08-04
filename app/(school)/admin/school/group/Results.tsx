@@ -43,14 +43,14 @@ const Results = ({
   }, [searched, itemsPerPage]);
 
   return (
-    <div className="flex h-[calc(100vh-200px)] flex-col space-y-4">
-      <div className="flex items-center space-x-2">
-        <div className="relative flex-grow">
+    <div className="flex h-full w-full flex-col space-y-4">
+      <div className="mt-4 flex flex-col items-center space-y-2 sm:flex-row sm:space-x-2 sm:space-y-0">
+        <div className="relative w-full flex-grow sm:w-auto ">
           <Input
             placeholder="Type group name to search..."
             value={searched}
             onChange={(e) => setSearched(e.target.value)}
-            className="pr-8"
+            className="border-r pr-8"
           />
           {searched && (
             <button
@@ -61,33 +61,22 @@ const Results = ({
             </button>
           )}
         </div>
-        <Button variant="outline" size="icon">
+        <Button variant="outline" size="icon" className="flex-shrink-0">
           <Search className="h-4 w-4" />
         </Button>
       </div>
 
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col items-center justify-between space-y-2 sm:flex-row sm:space-y-0">
         <p className="text-sm text-muted-foreground">
           {filteredRows.length}{' '}
           {filteredRows.length === 1 ? 'Record' : 'Records'} found. Page {page}{' '}
           of {noOfPages}
         </p>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setMode(mode === 'grid' ? 'list' : 'grid')}
-        >
-          {mode === 'grid' ? (
-            <List className="h-4 w-4" />
-          ) : (
-            <LayoutGrid className="h-4 w-4" />
-          )}
-        </Button>
       </div>
 
       <div className="flex-grow overflow-auto">
         {filteredRows.length === 0 ? (
-          <div className="py-4 text-center">
+          <div className="flex h-full items-center justify-center">
             <p className="text-muted-foreground">
               Sorry, no matching records found
             </p>
@@ -96,7 +85,7 @@ const Results = ({
           <div
             className={`grid ${
               mode === 'grid'
-                ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
+                ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
                 : 'grid-cols-1'
             } gap-4`}
           >
@@ -115,7 +104,7 @@ const Results = ({
       </div>
 
       {filteredRows.length > 0 && (
-        <div className="flex items-center justify-between border-t pt-4">
+        <div className="flex flex-col items-center justify-between space-y-4 border-t pt-4 sm:flex-row sm:space-y-0">
           <Select
             value={String(itemsPerPage)}
             onValueChange={(value) => setItemsPerPage(Number(value))}

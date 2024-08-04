@@ -151,8 +151,6 @@ export const GET_ATTENDANCE_TYPE = gql`
 export const CREATE_GROUP = gql`
   mutation CreateGroup($name: String!, $type: groupType!, $members: [ID!]) {
     createGroup(name: $name, type: $type, members: $members) {
-      success
-      message
       group {
         id
         name
