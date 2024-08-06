@@ -11,16 +11,16 @@ function StudentListView() {
 
   return (
     <ApolloProvider client={client}>
-      <div className="flex h-screen flex-col bg-gray-100">
+      <div className="flex min-h-screen flex-col border-0">
         <Header onNewStudent={() => setIsNewStudentModalOpen(true)} />
-        <div className="flex-grow overflow-auto">
-          <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <main className="flex-grow overflow-auto p-4 md:p-6 lg:p-8">
+          <div className="mx-auto w-full max-w-7xl">
             <Results
               isNewStudentModalOpen={isNewStudentModalOpen}
               setIsNewStudentModalOpen={setIsNewStudentModalOpen}
             />
           </div>
-        </div>
+        </main>
       </div>
     </ApolloProvider>
   );

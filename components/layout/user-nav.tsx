@@ -1,5 +1,3 @@
-'use client';
-
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -13,13 +11,20 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
-import { Input } from '@/components/ui/input';
 import { gql } from '@apollo/client';
-import apolloClient from '@/lib/apolloClient';
+import client from '@/graphql/client';
 import { useToast } from '@/components/ui/use-toast';
-import { useAuthStore } from '@/stores/authStore'; // Import the authStore
-import { Loader2, User, UserPlus, UserMinus, Search } from 'lucide-react';
+import { useAuthStore } from '@/stores/authStore';
+import { Loader2, LogOut, School, Settings, User, Users } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import SchoolSearch from '@/components/utils/SchoolSearch';
+import { Badge } from '@/components/ui/badge';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger
+} from '@/components/ui/tooltip';
 
 const SIGN_OUT = gql`
   mutation {
@@ -125,7 +130,7 @@ export function UserNav() {
 
   const fetchUserAccounts = async () => {
     try {
-      const { data } = await apolloClient.query({
+      const { data } = await client.query({
         query: MY_USER_ACCOUNTS,
         fetchPolicy: 'network-only'
       });
@@ -142,7 +147,7 @@ export function UserNav() {
 
   const handleSignOut = async () => {
     try {
-      await apolloClient.mutate({
+      await client.mutate({
         mutation: SIGN_OUT
       });
       logout();
@@ -159,7 +164,7 @@ export function UserNav() {
 
   const handleSwitchAccount = async (userAccessId: string) => {
     try {
-      const { data } = await apolloClient.mutate({
+      const { data } = await client.mutate({
         mutation: SET_USER,
         variables: { userAccessId }
       });
@@ -198,19 +203,9 @@ export function UserNav() {
     return null;
   }
 
-  // Rest of the component remains largely the same...
   return (
-    <div className="flex items-center space-x-4">
-      <form onSubmit={handleSearch} className="relative">
-        <Input
-          type="search"
-          placeholder="Search..."
-          className="w-[300px] pl-8"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-        />
-        <Search className="pointer-events-none absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 transform text-gray-500" />
-      </form>
+    <div className="flex w-full items-center justify-end space-x-4 px-4 py-2">
+      <SchoolSearch />
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
@@ -220,7 +215,7 @@ export function UserNav() {
                 src={user.profilePicture?.url}
                 alt={`${user.firstName} ${user.lastName}`}
               />
-              <AvatarFallback>
+              <AvatarFallback className="bg-primary text-primary-foreground">
                 {getInitials(user.firstName || '', user.lastName || '')}
               </AvatarFallback>
             </Avatar>
@@ -235,10 +230,13 @@ export function UserNav() {
               <p className="text-xs leading-none text-muted-foreground">
                 {user.email}
               </p>
+              <Badge variant="outline" className="mt-2 w-fit">
+                {user.role}
+              </Badge>
             </div>
           </DropdownMenuLabel>
-          <DropdownMenuSeparator />
 
+          <DropdownMenuSeparator />
           {userAccountsData &&
             userAccountsData.myUserAccounts &&
             userAccountsData.myUserAccounts.length > 1 && (
@@ -253,52 +251,27 @@ export function UserNav() {
                           key={account.id}
                           onSelect={() => handleSwitchAccount(account.id)}
                         >
-                          <div className="flex items-center">
-                            <Avatar className="mr-2 h-8 w-8">
-                              <AvatarImage
-                                src={
-                                  account.userType === 'STUDENT'
-                                    ? account.linkedTo?.profilePicture
-                                        ?.signedUrl
-                                    : account.user?.profilePicture?.signedUrl
-                                }
-                                alt={
-                                  account.userType === 'STUDENT'
-                                    ? `${account.linkedTo?.firstName || ''} ${
-                                        account.linkedTo?.lastName || ''
-                                      }`
-                                    : `${account.user?.firstName || ''} ${
-                                        account.user?.lastName || ''
-                                      }`
-                                }
-                              />
-                              <AvatarFallback>
-                                {account.userType === 'STUDENT'
-                                  ? getInitials(
-                                      account.linkedTo?.firstName || '',
-                                      account.linkedTo?.lastName || ''
-                                    )
-                                  : getInitials(
-                                      account.user?.firstName || '',
-                                      account.user?.lastName || ''
-                                    )}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <p className="text-sm font-medium">
-                                {account.userType === 'STUDENT'
-                                  ? `${account.linkedTo?.firstName || ''} ${
-                                      account.linkedTo?.lastName || ''
-                                    }`
-                                  : account.userType === 'SUPPORT_STAFF'
-                                  ? 'Administrator'
-                                  : 'Super Admin'}
-                              </p>
-                              <p className="text-xs text-muted-foreground">
-                                {account.userType === 'STUDENT' && 'Student '}
-                                {account.school?.name || ''}
-                              </p>
-                            </div>
+                          <Avatar className="mr-2 h-6 w-6">
+                            <AvatarImage
+                              src={account.user?.profilePicture?.signedUrl}
+                              alt={`${account.user?.firstName || ''} ${
+                                account.user?.lastName || ''
+                              }`}
+                            />
+                            <AvatarFallback>
+                              {getInitials(
+                                account.user?.firstName || '',
+                                account.user?.lastName || ''
+                              )}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex flex-col">
+                            <span className="text-sm">{`${
+                              account.user?.firstName || ''
+                            } ${account.user?.lastName || ''}`}</span>
+                            <span className="text-xs text-muted-foreground">
+                              {account.school?.name || ''}
+                            </span>
                           </div>
                         </DropdownMenuItem>
                       )
@@ -307,7 +280,10 @@ export function UserNav() {
                 <DropdownMenuSeparator />
               </>
             )}
-          <DropdownMenuItem onSelect={handleSignOut}>Log out</DropdownMenuItem>
+          <DropdownMenuItem onSelect={handleSignOut} className="text-red-600">
+            <LogOut className="mr-2 h-4 w-4" />
+            <span>Log out</span>
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     </div>

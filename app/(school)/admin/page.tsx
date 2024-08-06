@@ -16,7 +16,7 @@ import GridPattern from '@/components/magicui/grid-pattern';
 export default function DashboardPage() {
   return (
     <ApolloProvider client={client}>
-      <div className="min-h-screen bg-background py-12">
+      <div className="min-h-screen  py-12">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-12">
             <div className="sm:col-span-1 lg:col-span-3">

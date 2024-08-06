@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useMutation } from '@apollo/client';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -23,28 +22,19 @@ interface LeaveCardProps {
 }
 
 function LeaveCard({ leave, refetch }: LeaveCardProps) {
-  const router = useRouter();
   const { toast } = useToast();
-  const [approveLoading, setApproveLoading] = useState(false);
-  const [rejectLoading, setRejectLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const [approveLeave] = useMutation(APPROVE_LEAVE, {
     onCompleted(data) {
-      if (data.approveLeave.status === 'APPROVED') {
-        toast({
-          title: 'Leave approved',
-          description: 'The leave has been successfully approved.'
-        });
-        refetch();
-        setApproveLoading(false);
-      } else if (data.approveLeave.status === 'REJECTED') {
-        toast({
-          title: 'Leave rejected',
-          description: 'The leave has been successfully rejected.'
-        });
-        refetch();
-        setRejectLoading(false);
-      }
+      const action =
+        data.approveLeave.status === 'APPROVED' ? 'approved' : 'rejected';
+      toast({
+        title: `Leave ${action}`,
+        description: `The leave has been successfully ${action}.`
+      });
+      refetch();
+      setIsLoading(false);
     },
     onError(error) {
       toast({
@@ -52,91 +42,85 @@ function LeaveCard({ leave, refetch }: LeaveCardProps) {
         description: 'Something went wrong. Please try again.',
         variant: 'destructive'
       });
-      setApproveLoading(false);
-      setRejectLoading(false);
+      setIsLoading(false);
     }
   });
 
-  const handleApproveLeave = () => {
-    setApproveLoading(true);
+  const handleLeaveAction = (approved: boolean) => {
+    setIsLoading(true);
     approveLeave({
       variables: {
         id: leave.id,
-        approved: true
-      }
-    });
-  };
-
-  const handleRejectLeave = () => {
-    setRejectLoading(true);
-    approveLeave({
-      variables: {
-        id: leave.id,
-        approved: false
+        approved
       }
     });
   };
 
   const statusColors = {
     REJECTED: 'destructive',
-    APPROVED: 'success'
+    APPROVED: 'success',
+    PENDING: 'warning'
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center space-x-4">
-          <Avatar>
-            <AvatarImage src={leave.student.profilePicture?.signedUrl} />
-            <AvatarFallback>{`${leave.student.firstName.charAt(
-              0
-            )}${leave.student.lastName.charAt(0)}`}</AvatarFallback>
-          </Avatar>
-          <div>
-            <Link
-              href={`/app/school/leave/${leave.id}`}
-              className="font-medium"
-            >
-              {leave.student.firstName} {leave.student.lastName}
-            </Link>
-            <p className="text-sm text-muted-foreground">
-              <span className="font-semibold">{leave.summary}</span> | From{' '}
-              {dayjs(leave.from).format('MMM D, YYYY')} | {leave.noOfDays}{' '}
-              {leave.noOfDays === 1 ? 'day' : 'days'}
-              {leave.status !== 'PENDING' && (
-                <>
-                  {' '}
-                  |{' '}
-                  <Label variant={statusColors[leave.status]}>
-                    {leave.status}
-                  </Label>
-                </>
-              )}
-            </p>
+    <Card className="w-full">
+      <CardHeader className="pb-2">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center space-x-4">
+            <Avatar>
+              <AvatarImage src={leave.student.profilePicture?.signedUrl} />
+              <AvatarFallback>{`${leave.student.firstName.charAt(
+                0
+              )}${leave.student.lastName.charAt(0)}`}</AvatarFallback>
+            </Avatar>
+            <div>
+              <Link
+                href={`/app/school/leave/${leave.id}`}
+                className="font-medium hover:underline"
+              >
+                {leave.student.firstName} {leave.student.lastName}
+              </Link>
+              <p className="text-sm text-muted-foreground">
+                <span className="font-semibold">{leave.summary}</span>
+              </p>
+            </div>
+          </div>
+          <div className="mt-2 text-sm text-muted-foreground sm:mt-0">
+            {dayjs(leave.from).format('MMM D, YYYY')} | {leave.noOfDays}{' '}
+            {leave.noOfDays === 1 ? 'day' : 'days'}
           </div>
         </div>
       </CardHeader>
       <CardContent>
-        <div className="flex justify-end space-x-2">
-          {leave.status === 'PENDING' && !rejectLoading && (
-            <Button onClick={handleApproveLeave} disabled={approveLoading}>
-              {!approveLoading ? 'Approve' : 'Approving...'}
-            </Button>
-          )}
-          {leave.status === 'PENDING' && !rejectLoading && !approveLoading && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="icon">
-                  <MoreVertical className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem onClick={handleRejectLeave}>
-                  <ThumbsDown className="mr-2 h-4 w-4" />
-                  <span>Reject</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+        <div className="flex flex-col items-start justify-between space-y-2 sm:flex-row sm:items-center sm:space-y-0">
+          <Label
+            variant={statusColors[leave.status]}
+            className="rounded px-2 py-1 text-xs"
+          >
+            {leave.status}
+          </Label>
+          {leave.status === 'PENDING' && (
+            <div className="flex space-x-2">
+              <Button
+                onClick={() => handleLeaveAction(true)}
+                disabled={isLoading}
+              >
+                {!isLoading ? 'Approve' : 'Processing...'}
+              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="icon">
+                    <MoreVertical className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem onClick={() => handleLeaveAction(false)}>
+                    <ThumbsDown className="mr-2 h-4 w-4" />
+                    <span>Reject</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           )}
         </div>
       </CardContent>
