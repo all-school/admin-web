@@ -1,4 +1,3 @@
-// app/admin/school/form/page.tsx
 'use client';
 
 import React, { useState } from 'react';
@@ -7,16 +6,16 @@ import client from '@/graphql/client';
 import Header from './Header';
 import FormListContent from './FormListContent';
 
-function FormListView() {
+export default function FormListView() {
   const [isSendDialogOpen, setIsSendDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   return (
     <ApolloProvider client={client}>
-      <div className="flex h-screen flex-col bg-gray-100">
+      <div className="flex min-h-screen flex-col bg-gray-50">
         <Header />
-        <div className="flex-grow overflow-auto">
-          <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <main className="w-full flex-grow">
+          <div className="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
             <FormListContent
               isSendDialogOpen={isSendDialogOpen}
               setIsSendDialogOpen={setIsSendDialogOpen}
@@ -24,10 +23,8 @@ function FormListView() {
               setIsDeleteDialogOpen={setIsDeleteDialogOpen}
             />
           </div>
-        </div>
+        </main>
       </div>
     </ApolloProvider>
   );
 }
-
-export default FormListView;

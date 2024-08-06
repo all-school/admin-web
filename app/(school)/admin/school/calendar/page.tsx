@@ -1,3 +1,4 @@
+// page.tsx
 'use client';
 
 import React, { useState, useCallback } from 'react';
@@ -69,7 +70,7 @@ const CalendarView = () => {
         allDay: event.allDay,
         description: event.description,
         sharedWith: event.sharedWith,
-        type: event.type // Assuming you have a type field in your event data
+        type: event.calendarEntryType
       }));
       setEvents(formattedEvents);
     }
@@ -120,9 +121,9 @@ const CalendarView = () => {
   const eventStyleGetter = (event, start, end, isSelected) => {
     let className = 'rbc-event';
 
-    if (event.type === 1) {
+    if (event.type === 'EVENT') {
       className += ' event-type-1';
-    } else if (event.type === 2) {
+    } else if (event.type === 'TASK') {
       className += ' event-type-2';
     }
 
@@ -200,9 +201,13 @@ const CalendarView = () => {
           </DialogHeader>
           <AddEditEventModal
             event={selectedEvent}
-            onSave={handleEventAdd}
-            onClose={() => setIsAddModalOpen(false)}
             mode="add"
+            onAdd={handleEventAdd}
+            onEdit={handleEventEdit}
+            onCancel={() => setIsAddModalOpen(false)}
+            onDelete={handleEventDelete}
+            refetch={refetch}
+            open={isAddModalOpen}
           />
         </DialogContent>
       </Dialog>
@@ -213,10 +218,13 @@ const CalendarView = () => {
           </DialogHeader>
           <AddEditEventModal
             event={selectedEvent}
-            onSave={handleEventEdit}
-            onDelete={handleEventDelete}
-            onClose={() => setIsEditModalOpen(false)}
             mode="edit"
+            onAdd={handleEventAdd}
+            onEdit={handleEventEdit}
+            onCancel={() => setIsEditModalOpen(false)}
+            onDelete={handleEventDelete}
+            refetch={refetch}
+            open={isEditModalOpen}
           />
         </DialogContent>
       </Dialog>

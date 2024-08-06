@@ -14,19 +14,21 @@ const Details = ({ student, refetch }) => {
     const file = event.target.files[0];
     if (file) {
       try {
-        await Upload(
-          file,
-          student.id,
-          'STUDENT_PROFILE_PICTURE',
-          refetch,
-          setUploading
-        );
+        setUploading(true);
+        await Upload(file, student.id, 'STUDENT_PROFILE_PICTURE', refetch);
+        toast({
+          title: 'Success',
+          description: 'Profile picture uploaded successfully.',
+          variant: 'default'
+        });
       } catch (error) {
         toast({
           title: 'Error',
           description: 'Failed to upload profile picture. Please try again.',
           variant: 'destructive'
         });
+      } finally {
+        setUploading(false);
       }
     }
   };
@@ -34,85 +36,107 @@ const Details = ({ student, refetch }) => {
   const handleDeletePicture = async () => {
     if (student.profilePicture) {
       try {
+        setDeletingPic(true);
         await Delete(
           student.id,
           student.profilePicture.id,
           'STUDENT_PROFILE_PICTURE',
-          refetch,
-          setDeletingPic
+          refetch
         );
+        toast({
+          title: 'Success',
+          description: 'Profile picture removed successfully.',
+          variant: 'default'
+        });
       } catch (error) {
         toast({
           title: 'Error',
           description: 'Failed to delete profile picture. Please try again.',
           variant: 'destructive'
         });
+      } finally {
+        setDeletingPic(false);
       }
     }
   };
 
   return (
     <div className="grid h-[calc(100vh-200px)] grid-cols-1 gap-6 overflow-auto p-4 md:grid-cols-2">
-      <Card>
+      <Card className="shadow-md">
         <CardHeader>
-          <h3 className="text-lg font-semibold">Profile Picture</h3>
+          <h3 className="text-xl font-semibold">Profile Picture</h3>
         </CardHeader>
         <CardContent className="flex flex-col items-center">
-          <Avatar className="h-32 w-32">
-            <AvatarImage src={student.profilePicture?.signedUrl} />
-            <AvatarFallback>
+          <Avatar className="h-40 w-40 border-2 border-gray-200">
+            <AvatarImage
+              src={student.profilePicture?.signedUrl}
+              alt={`${student.firstName} ${student.lastName}`}
+            />
+            <AvatarFallback className="text-2xl">
               {student.firstName[0]}
               {student.lastName[0]}
             </AvatarFallback>
           </Avatar>
-          <div className="mt-4 space-y-2">
+          <div className="mt-6 w-full max-w-xs space-y-4">
             <input
               type="file"
               onChange={handleFileChange}
               className="hidden"
               id="profile-picture-upload"
+              accept="image/*"
               disabled={uploading}
             />
             <label
               htmlFor="profile-picture-upload"
-              className="inline-flex h-10 cursor-pointer items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground ring-offset-background transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
+              className="inline-flex h-10 w-full cursor-pointer items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground ring-offset-background transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
             >
-              {uploading ? 'Uploading...' : 'Upload Picture'}
+              {uploading ? 'Uploading...' : 'Upload New Picture'}
             </label>
             {student.profilePicture && (
               <Button
                 onClick={handleDeletePicture}
-                variant="destructive"
+                variant="outline"
+                className="w-full"
                 disabled={deletingPic}
               >
-                {deletingPic ? 'Deleting...' : 'Remove Picture'}
+                {deletingPic ? 'Removing...' : 'Remove Current Picture'}
               </Button>
             )}
           </div>
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="shadow-md">
         <CardHeader>
-          <h3 className="text-lg font-semibold">Key Information</h3>
+          <h3 className="text-xl font-semibold">Key Information</h3>
         </CardHeader>
         <CardContent>
           <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div>
-              <dt className="font-medium text-gray-500">Father</dt>
-              <dd>{student.fatherName}</dd>
+            <div className="space-y-1">
+              <dt className="text-sm font-medium text-gray-500">
+                Father's Name
+              </dt>
+              <dd className="text-base">{student.fatherName}</dd>
             </div>
-            <div>
-              <dt className="font-medium text-gray-500">Mother</dt>
-              <dd>{student.motherName}</dd>
+            <div className="space-y-1">
+              <dt className="text-sm font-medium text-gray-500">
+                Mother's Name
+              </dt>
+              <dd className="text-base">{student.motherName}</dd>
             </div>
-            <div>
-              <dt className="font-medium text-gray-500">Blood Group</dt>
-              <dd>{student.bloodGroup.replace('_', ' ')}</dd>
+            <div className="space-y-1">
+              <dt className="text-sm font-medium text-gray-500">Blood Group</dt>
+              <dd className="text-base">
+                {student.bloodGroup.replace('_', ' ')}
+              </dd>
             </div>
-            <div>
-              <dt className="font-medium text-gray-500">Date of Birth</dt>
-              <dd>{new Date(student.dob).toLocaleDateString()}</dd>
+            <div className="space-y-1">
+              <dt className="text-sm font-medium text-gray-500">
+                Date of Birth
+              </dt>
+              <dd className="text-base">
+                {new Date(student.dob).toLocaleDateString()}
+              </dd>
             </div>
           </dl>
         </CardContent>

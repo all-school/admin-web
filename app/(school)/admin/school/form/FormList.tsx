@@ -1,10 +1,24 @@
-// app/admin/school/form/FormList.tsx
-import { useState } from 'react';
+import React from 'react';
+import {
+  FileText,
+  MoreVertical,
+  Send,
+  Trash2,
+  Calendar,
+  Users
+} from 'lucide-react';
 import Link from 'next/link';
-import { FileText, MoreVertical, Send, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle
+} from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Progress } from '@/components/ui/progress';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,6 +34,13 @@ interface Form {
   noOfResponses: number;
   noOfRecipients: number;
   createdAt: string;
+  createdBy?: {
+    user?: {
+      firstName?: string;
+      lastName?: string;
+      profilePicture?: { signedUrl?: string };
+    };
+  };
 }
 
 interface FormListProps {
@@ -30,39 +51,37 @@ interface FormListProps {
 
 export default function FormList({ forms, onSend, onDelete }: FormListProps) {
   return (
-    <div className="space-y-4">
+    <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
       {forms.map((form) => (
-        <Card key={form.id}>
-          <CardContent className="flex items-center justify-between p-4">
-            <div className="flex items-center space-x-4">
-              <FileText className="h-6 w-6 text-gray-500" />
-              <div>
-                <Link
-                  href={`/admin/school/form/${form.id}`}
-                  className="text-lg font-medium hover:underline"
-                >
-                  {form.title}
-                </Link>
-                <div className="text-sm text-gray-500">
-                  Type: {form.formType === 'GENERAL' ? 'General' : 'Consent'}
+        <Card
+          key={form.id}
+          className="overflow-hidden transition-all hover:shadow-lg"
+        >
+          <CardHeader className="pb-2">
+            <div className="flex items-start justify-between">
+              <div className="flex items-center space-x-2">
+                <Avatar className="h-10 w-10">
+                  <AvatarImage
+                    src={form.createdBy?.user?.profilePicture?.signedUrl}
+                  />
+                  <AvatarFallback>
+                    {form.createdBy?.user?.firstName?.[0] ?? ''}
+                    {form.createdBy?.user?.lastName?.[0] ?? ''}
+                  </AvatarFallback>
+                </Avatar>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">
+                    {form.createdBy?.user?.firstName}{' '}
+                    {form.createdBy?.user?.lastName}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Created on {new Date(form.createdAt).toLocaleDateString()}
+                  </p>
                 </div>
-              </div>
-            </div>
-            <div className="flex items-center space-x-4">
-              <Badge
-                variant={form.status === 'OPEN' ? 'success' : 'destructive'}
-              >
-                {form.status === 'OPEN' ? 'Accepting Response' : 'Closed'}
-              </Badge>
-              <div className="text-sm">
-                Responses: {form.noOfResponses}/{form.noOfRecipients}
-              </div>
-              <div className="text-sm">
-                Created: {new Date(form.createdAt).toLocaleDateString()}
               </div>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm">
+                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                     <MoreVertical className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
@@ -78,7 +97,49 @@ export default function FormList({ forms, onSend, onDelete }: FormListProps) {
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
+          </CardHeader>
+          <CardContent>
+            <Link href={`/admin/school/form/${form.id}`}>
+              <CardTitle className="mb-2 cursor-pointer text-xl hover:underline">
+                {form.title}
+              </CardTitle>
+            </Link>
+            <div className="mb-4 flex flex-wrap gap-2">
+              <Badge variant="secondary" className="flex items-center gap-1">
+                <FileText className="h-4 w-4" />
+                <span>
+                  {form.formType === 'GENERAL' ? 'General' : 'Consent'}
+                </span>
+              </Badge>
+              <Badge
+                variant={form.status === 'OPEN' ? 'success' : 'destructive'}
+                className="flex items-center gap-1"
+              >
+                <Calendar className="h-4 w-4" />
+                <span>
+                  {form.status === 'OPEN' ? 'Accepting Response' : 'Closed'}
+                </span>
+              </Badge>
+            </div>
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span>Submission Progress</span>
+                <span>
+                  {form.noOfResponses}/{form.noOfRecipients} submitted
+                </span>
+              </div>
+              <Progress
+                value={(form.noOfResponses / form.noOfRecipients) * 100}
+                className="w-full"
+              />
+            </div>
           </CardContent>
+          <CardFooter className="pt-2">
+            <div className="flex items-center text-sm text-muted-foreground">
+              <Users className="mr-2 h-4 w-4" />
+              <span>{form.noOfRecipients} recipients</span>
+            </div>
+          </CardFooter>
         </Card>
       ))}
     </div>
