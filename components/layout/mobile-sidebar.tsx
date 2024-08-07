@@ -1,41 +1,34 @@
-'use client';
-import { DashboardNav } from '@/components/dashboard-nav';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { navItems } from '@/constants/data';
-import { MenuIcon } from 'lucide-react';
 import { useState } from 'react';
+import Link from 'next/link';
+import { MenuIcon } from 'lucide-react';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { DashboardNav } from '@/components/dashboard-nav';
+import { navItems } from '@/constants/data';
 
-// import { Playlist } from "../data/playlists";
-
-interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
-  // playlists: Playlist[];
-}
-
-export function MobileSidebar({ className }: SidebarProps) {
+export function MobileSidebar() {
   const [open, setOpen] = useState(false);
+
   return (
-    <>
-      <Sheet open={open} onOpenChange={setOpen}>
-        <SheetTrigger asChild>
-          <MenuIcon />
-        </SheetTrigger>
-        <SheetContent side="left" className="!px-0">
-          <div className="space-y-4 py-4">
-            <div className="px-3 py-2">
-              <h2 className="mb-2 px-4 text-lg font-semibold tracking-tight">
-                Overview
-              </h2>
-              <div className="space-y-1">
-                <DashboardNav
-                  items={navItems}
-                  isMobileNav={true}
-                  setOpen={setOpen}
-                />
-              </div>
-            </div>
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetTrigger asChild>
+        <button className="p-2 text-gray-500 hover:text-gray-700 focus:outline-none">
+          <MenuIcon className="h-6 w-6" />
+        </button>
+      </SheetTrigger>
+      <SheetContent side="left" className="w-[240px] p-0">
+        <nav className="flex h-full flex-col bg-white">
+          <Link href="/admin" className="p-4 hover:bg-gray-100">
+            <h2 className="text-lg font-semibold">Dashboard</h2>
+          </Link>
+          <div className="flex-1 overflow-y-auto">
+            <DashboardNav
+              items={navItems}
+              isMobileNav={true}
+              setOpen={setOpen}
+            />
           </div>
-        </SheetContent>
-      </Sheet>
-    </>
+        </nav>
+      </SheetContent>
+    </Sheet>
   );
 }

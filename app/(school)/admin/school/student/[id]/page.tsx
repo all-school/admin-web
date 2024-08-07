@@ -11,7 +11,7 @@ import {
 } from './StudentDetailService';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Edit } from 'lucide-react';
+import { Edit, Loader2 } from 'lucide-react';
 import Details from './Details';
 import Attendance from './Attendance';
 import UserAccess from './UserAccess';
@@ -93,20 +93,22 @@ const StudentDetailsContent = ({ params }) => {
   if (loading)
     return (
       <div className="flex h-screen items-center justify-center">
-        Loading...
+        <Loader2 className="h-8 w-8 animate-spin" />
       </div>
     );
-  if (error) return <div>Error: {error.message}</div>;
-  if (!data || !data.student) return <div>No student data found</div>;
+  if (error)
+    return <div className="p-4 text-red-500">Error: {error.message}</div>;
+  if (!data || !data.student)
+    return <div className="p-4">No student data found</div>;
 
   const { student } = data;
   return (
-    <div className="container mx-auto flex h-screen flex-col p-4">
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-3xl font-bold">
+    <div className="flex h-screen flex-col">
+      <div className="flex items-center justify-between border-b p-4">
+        <h1 className="truncate text-2xl font-bold">
           {student.firstName} {student.lastName}
         </h1>
-        <Button onClick={handleEdit}>
+        <Button onClick={handleEdit} size="sm">
           <Edit className="mr-2 h-4 w-4" /> Edit
         </Button>
       </div>
@@ -116,20 +118,22 @@ const StudentDetailsContent = ({ params }) => {
         onValueChange={setCurrentTab}
         className="flex flex-grow flex-col"
       >
-        <TabsList>
+        <TabsList className="border-b px-4">
           <TabsTrigger value="profile">Profile</TabsTrigger>
           <TabsTrigger value="attendance">Attendance</TabsTrigger>
           <TabsTrigger value="useraccess">Access</TabsTrigger>
         </TabsList>
-        <TabsContent value="profile" className="flex-grow">
-          <Details student={student} refetch={refetch} />
-        </TabsContent>
-        <TabsContent value="attendance" className="flex-grow">
-          <Attendance student={student} />
-        </TabsContent>
-        <TabsContent value="useraccess" className="flex-grow">
-          <UserAccess student={student} handleResend={handleResend} />
-        </TabsContent>
+        <div className="flex-grow overflow-auto p-1">
+          <TabsContent value="profile" className="mt-0 h-full">
+            <Details student={student} refetch={refetch} />
+          </TabsContent>
+          <TabsContent value="attendance" className="mt-0 h-full">
+            <Attendance student={student} />
+          </TabsContent>
+          <TabsContent value="useraccess" className="mt-0 h-full">
+            <UserAccess student={student} handleResend={handleResend} />
+          </TabsContent>
+        </div>
       </Tabs>
 
       <EditDialog
@@ -142,6 +146,7 @@ const StudentDetailsContent = ({ params }) => {
     </div>
   );
 };
+
 const StudentDetailsView = ({ params }) => {
   return (
     <ApolloProvider client={client}>

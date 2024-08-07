@@ -61,7 +61,7 @@ const Details = ({ student, refetch }) => {
   };
 
   return (
-    <div className="grid h-[calc(100vh-200px)] grid-cols-1 gap-6 overflow-auto p-4 md:grid-cols-2">
+    <div className="w-full space-y-6 p-1">
       <Card className="shadow-md">
         <CardHeader>
           <h3 className="text-xl font-semibold">Profile Picture</h3>
